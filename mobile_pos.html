@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KEX Mobile POS 揽收</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial;
+      background: #f5f6f8;
+    }
+    .app {
+      max-width: 390px;
+      margin: 0 auto;
+      background: #fff;
+      min-height: 100vh;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .header {
+      padding: 14px 16px;
+      font-size: 18px;
+      font-weight: 600;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #fa8c16;
+    }
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #fa8c16;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+    .page {
+      display: none;
+      padding: 20px;
+    }
+    .page.active {
+      display: block;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      margin-top: 16px;
+      font-size: 16px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+    }
+    .primary {
+      background: #fa8c16;
+      color: #fff;
+    }
+    .secondary {
+      background: #fff7e6;
+      color: #fa8c16;
+      border: 1px solid #ffd591;
+    }
+    .danger {
+      background: #ff4d4f;
+      color: #fff;
+    }
+    .card {
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 12px;
+      margin-top: 12px;
+      background: #fafafa;
+    }
+    .list {
+      margin-top: 12px;
+    }
+    .item {
+      padding: 10px;
+      border-bottom: 1px dashed #ddd;
+      font-size: 14px;
+    }
+    .toast {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.75);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 20px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="header"><div class="logo">KEX</div>Mobile POS</div>
+
+    <!-- 首页 -->
+    <div class="page active" id="home">
+      <p>你好，小哥（角色：<b id="role">揽收员</b>）</p>
+      <button class="btn primary" onclick="go('scan')">📦 批量扫码揽收</button>
+      <button class="btn secondary" onclick="switchRole()">切换角色（演示）</button>
+    </div>
+
+    <!-- 批量扫码页 -->
+    <div class="page" id="scan">
+      <p>连续扫描包裹面单</p>
+      <div class="card">📷 模拟扫码区域</div>
+      <button class="btn primary" onclick="addItem()">+ 模拟扫描一个包裹</button>
+      <div class="list" id="list"></div>
+      <button class="btn secondary" onclick="go('verify')">完成扫码，去校验</button>
+    </div>
+
+    <!-- 校验页 -->
+    <div class="page" id="verify">
+      <p>系统校验中…</p>
+      <div class="card">POS 后端校验包裹可揽收性</div>
+      <button class="btn primary" onclick="go('confirm')">校验通过</button>
+      <button class="btn danger" onclick="go('error')">存在异常</button>
+    </div>
+
+    <!-- 确认页 -->
+    <div class="page" id="confirm">
+      <p>确认揽收以下包裹（<span id="count">0</span> 件）</p>
+      <div class="card">批量揽收将一次性提交</div>
+      <button class="btn primary" onclick="submit()">✅ 确认揽收</button>
+    </div>
+
+    <!-- 成功页 -->
+    <div class="page" id="success">
+      <p>🎉 揽收成功</p>
+      <div class="card">所有包裹已标记为【已揽收（现场）】</div>
+      <button class="btn secondary" onclick="go('sync')">查看与 PC POS 状态联动</button>
+      <button class="btn secondary" onclick="reset()">返回首页</button>
+    </div>
+
+    <!-- PC POS 状态联动说明页 -->
+    <div class="page" id="sync">
+      <p>📡 与 PC POS 的状态联动说明</p>
+      <div class="card">
+        <p><b>1. 揽收状态同步</b></p>
+        <p>Mobile POS 提交成功后，POS 后端已将订单状态更新为 <b>已揽收</b>。</p>
+      </div>
+      <div class="card">
+        <p><b>2. PC POS 可见内容</b></p>
+        <ul>
+          <li>订单状态：已揽收（来源：Mobile POS）</li>
+          <li>揽收时间 / 揽收人</li>
+          <li>支持后续称重、计费、对账</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p><b>3. 后续处理原则</b></p>
+        <p>PC POS 不重复揽收，只做后链路处理。</p>
+      </div>
+      <button class="btn primary" onclick="go('home')">我知道了</button>
+    </div>
+
+    <!-- 异常页 -->
+    <div class="page" id="error">
+      <p>❌ 权限或订单异常</p>
+      <div class="card">当前角色无权限或存在异常包裹</div>
+      <button class="btn secondary" onclick="reset()">返回首页</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">提示</div>
+
+  <script>
+    let items = [];
+    let role = 'collector';
+
+    function go(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      document.getElementById('count').innerText = items.length;
+    }
+
+    function addItem() {
+      const id = 'YT' + Math.floor(Math.random() * 1000000);
+      items.push(id);
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.innerText = id;
+      document.getElementById('list').appendChild(div);
+      showToast('已扫描 ' + id);
+    }
+
+    function submit() {
+      if (role !== 'collector') {
+        go('error');
+        return;
+      }
+      go('success');
+    }
+
+    function reset() {
+      items = [];
+      document.getElementById('list').innerHTML = '';
+      go('home');
+    }
+
+    function switchRole() {
+      role = role === 'collector' ? 'viewer' : 'collector';
+      document.getElementById('role').innerText = role === 'collector' ? '揽收员' : '仅查看';
+      showToast('当前角色：' + document.getElementById('role').innerText);
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.innerText = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 1500);
+    }
+  </script>
+</body>
+</html>
