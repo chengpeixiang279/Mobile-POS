@@ -2,34 +2,54 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   <title>KEX Mobile POS 揽收</title>
   <style>
-    body {
+    /* 全局样式重置与基础配置 */
+    * {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       background: #f5f6f8;
+      font-size: 16px;
+      color: #333;
     }
+    
+    /* 应用容器 - 完全适配移动端 */
     .app {
-      max-width: 390px;
-      margin: 0 auto;
-      background: #fff;
+      width: 100vw;
       min-height: 100vh;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      background: #fff;
+      overflow-x: hidden;
     }
+    
+    /* 头部样式优化 */
     .header {
-      padding: 14px 16px;
+      padding: 16px 20px;
       font-size: 18px;
       font-weight: 600;
       border-bottom: 1px solid #eee;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 12px;
       color: #fa8c16;
+      background: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     }
+    
     .logo {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
       background: #fa8c16;
       color: #fff;
@@ -37,103 +57,235 @@
       align-items: center;
       justify-content: center;
       font-weight: 700;
+      font-size: 14px;
     }
+    
+    /* 页面容器优化 - 修复核心问题 */
     .page {
-      display: none;
-      padding: 20px;
+      display: none; /* 仅保留初始隐藏 */
+      padding: 24px 20px;
+      min-height: calc(100vh - 74px);
+      flex-direction: column;
     }
+    
     .page.active {
-      display: block;
+      display: flex; /* 只有active时才显示为flex */
     }
+    
+    /* 按钮样式增强 */
     .btn {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       margin-top: 16px;
-      font-size: 16px;
-      border-radius: 10px;
+      font-size: 17px;
+      border-radius: 12px;
       border: none;
       cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s ease;
     }
+    
+    .btn:active {
+      opacity: 0.85;
+      transform: scale(0.98);
+    }
+    
     .primary {
       background: #fa8c16;
       color: #fff;
     }
+    
     .secondary {
       background: #fff7e6;
       color: #fa8c16;
       border: 1px solid #ffd591;
     }
+    
     .danger {
       background: #ff4d4f;
       color: #fff;
     }
+
+    /* 管理员功能按钮样式 */
+    .admin-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+    }
+    
+    /* 卡片样式优化 */
     .card {
       border: 1px solid #eee;
-      border-radius: 10px;
-      padding: 12px;
-      margin-top: 12px;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 16px;
       background: #fafafa;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
-    .list {
+
+    /* 权限卡片样式 */
+    .permission-card {
       margin-top: 12px;
+      border-color: #fa8c16;
+      background: #fff8ed;
     }
+    
+    /* 列表样式优化 */
+    .list {
+      margin-top: 16px;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 300px;
+    }
+    
     .item {
-      padding: 10px;
+      padding: 12px 16px;
       border-bottom: 1px dashed #ddd;
-      font-size: 14px;
+      font-size: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
+    
+    .item:last-child {
+      border-bottom: none;
+    }
+    
+    /* 文本样式优化 */
+    p {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .user-info {
+      margin-bottom: 16px;
+      line-height: 1.8;
+    }
+    
+    /* 提示框优化 */
     .toast {
       position: fixed;
       bottom: 40px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.75);
+      background: rgba(0,0,0,0.8);
       color: #fff;
-      padding: 10px 16px;
-      border-radius: 20px;
+      padding: 12px 20px;
+      border-radius: 24px;
       display: none;
+      z-index: 999;
+      font-size: 15px;
+      min-width: 120px;
+      text-align: center;
+    }
+    
+    /* 扫码区域样式增强 */
+    .scan-area {
+      border: 2px dashed #fa8c16;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      color: #fa8c16;
+      margin-top: 16px;
+    }
+    
+    /* 加载动画样式 */
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(250,140,22,0.3);
+      border-radius: 50%;
+      border-top-color: #fa8c16;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
 <body>
   <div class="app">
-    <div class="header"><div class="logo">KEX</div>Mobile POS</div>
+    <div class="header">
+      <div class="logo">KEX</div>
+      <span>Mobile POS 揽收系统</span>
+    </div>
 
     <!-- 首页 -->
     <div class="page active" id="home">
-      <p>你好，小哥（角色：<b id="role">揽收员</b>）</p>
-      <button class="btn primary" onclick="go('scan')">📦 批量扫码揽收</button>
-      <button class="btn secondary" onclick="switchRole()">切换角色（演示）</button>
+      <div class="user-info">
+        你好，欢迎进入Mobile POS揽收系统，您的工号是<b>KEX10086</b>，绑定门店代码为<b>SH001</b>。
+      </div>
+      <div id="role-permission" class="card permission-card">
+        <p><b>当前角色：揽收员</b></p>
+        <p>权限：</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>扫码、校验、确认揽收</li>
+          <li>查看揽收记录</li>
+        </ul>
+      </div>
+      <button class="btn primary" id="collect-btn" onclick="go('scan')">📦 批量扫码揽收</button>
+      <button class="btn secondary" onclick="switchRole()">切换角色</button>
+      
+      <!-- 管理员功能入口（默认隐藏） -->
+      <div id="admin-functions" style="display: none;">
+        <button class="btn secondary admin-btn" onclick="go('assign-area')">📍 分配揽收区域</button>
+        <button class="btn secondary admin-btn" onclick="go('reset-permission')">🔑 重置人员权限</button>
+        <button class="btn secondary admin-btn" onclick="go('view-report')">📊 查看全量数据报表</button>
+        <button class="btn secondary admin-btn" onclick="go('handle-exception')">⚠️ 处理权限异常</button>
+      </div>
     </div>
 
-    <!-- 批量扫码页 -->
+    <!-- 批量扫码页（揽收员） -->
     <div class="page" id="scan">
       <p>连续扫描包裹面单</p>
-      <div class="card">📷 模拟扫码区域</div>
+      <div class="card scan-area">📷 点击下方按钮模拟扫码<br/>（实际为摄像头扫码识别）</div>
       <button class="btn primary" onclick="addItem()">+ 模拟扫描一个包裹</button>
       <div class="list" id="list"></div>
       <button class="btn secondary" onclick="go('verify')">完成扫码，去校验</button>
     </div>
 
-    <!-- 校验页 -->
+    <!-- 校验页（揽收员） -->
     <div class="page" id="verify">
-      <p>系统校验中…</p>
-      <div class="card">POS 后端校验包裹可揽收性</div>
+      <p><span class="loading"></span>PC POS 后端正在校验…</p>
+      <div class="card">
+        <p>✅ PC POS 后端正在校验：</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>订单是否存在且有效</li>
+          <li>订单状态是否允许揽收</li>
+          <li>当前账号是否有揽收权限</li>
+        </ul>
+      </div>
       <button class="btn primary" onclick="go('confirm')">校验通过</button>
       <button class="btn danger" onclick="go('error')">存在异常</button>
     </div>
 
-    <!-- 确认页 -->
+    <!-- 确认页（揽收员） -->
     <div class="page" id="confirm">
       <p>确认揽收以下包裹（<span id="count">0</span> 件）</p>
-      <div class="card">批量揽收将一次性提交</div>
+      <div class="card">
+        <p>⚠️ 批量揽收确认后：</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>所有包裹将标记为【已揽收（现场）】</li>
+          <li>状态将同步至 PC POS 系统</li>
+          <li>包裹可直接送往中转场</li>
+        </ul>
+      </div>
       <button class="btn primary" onclick="submit()">✅ 确认揽收</button>
     </div>
 
-    <!-- 成功页 -->
+    <!-- 成功页（揽收员） -->
     <div class="page" id="success">
       <p>🎉 揽收成功</p>
-      <div class="card">所有包裹已标记为【已揽收（现场）】</div>
+      <div class="card">
+        <p>所有包裹已标记为【已揽收（现场）】</p>
+        <p style="margin-top: 8px; color: #666; font-size: 14px;">揽收时间：<span id="collectTime"></span></p>
+        <p style="color: #666; font-size: 14px;">揽收人：小哥（ID：KEX10086）</p>
+      </div>
       <button class="btn secondary" onclick="go('sync')">查看与 PC POS 状态联动</button>
       <button class="btn secondary" onclick="reset()">返回首页</button>
     </div>
@@ -147,15 +299,15 @@
       </div>
       <div class="card">
         <p><b>2. PC POS 可见内容</b></p>
-        <ul>
+        <ul style="margin-left: 20px; margin-top: 8px;">
           <li>订单状态：已揽收（来源：Mobile POS）</li>
-          <li>揽收时间 / 揽收人</li>
-          <li>支持后续称重、计费、对账</li>
+          <li>揽收时间 / 揽收人信息</li>
+          <li>支持后续称重、计费、对账操作</li>
         </ul>
       </div>
       <div class="card">
         <p><b>3. 后续处理原则</b></p>
-        <p>PC POS 不重复揽收，只做后链路处理。</p>
+        <p>PC POS 不重复揽收，仅处理异常订单和后链路业务。</p>
       </div>
       <button class="btn primary" onclick="go('home')">我知道了</button>
     </div>
@@ -163,8 +315,99 @@
     <!-- 异常页 -->
     <div class="page" id="error">
       <p>❌ 权限或订单异常</p>
-      <div class="card">当前角色无权限或存在异常包裹</div>
+      <div class="card">
+        <p>异常原因：</p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>当前角色无揽收操作权限</li>
+          <li>部分订单状态异常（已取消/已揽收）</li>
+          <li>网络异常，无法同步订单信息</li>
+        </ul>
+        <p style="margin-top: 12px; color: #ff4d4f;">请返回首页重新操作或联系管理员</p>
+      </div>
       <button class="btn secondary" onclick="reset()">返回首页</button>
+    </div>
+
+    <!-- 管理员页面：分配揽收区域 -->
+    <div class="page" id="assign-area">
+      <p>📍 分配揽收区域</p>
+      <div class="card">
+        <p><b>区域分配规则</b></p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>按行政区域划分：Pathum Wan、Sukhumvit、Chatuchak、Bang Rak、Ratchathewi、Lat Phrao 等</li>
+          <li>每个区域绑定1-3名揽收员</li>
+          <li>支持临时调整（如小哥请假代派）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p><b>当前待分配人员</b></p>
+        <div class="item">KEX10086 - 小哥</div>
+        <div class="item">KEX10087 - 小李</div>
+        <div class="item">KEX10088 - 小张</div>
+      </div>
+      <button class="btn primary" onclick="showToast('区域分配成功！')">确认分配</button>
+      <button class="btn secondary" onclick="go('home')">返回首页</button>
+    </div>
+
+    <!-- 管理员页面：重置人员权限 -->
+    <div class="page" id="reset-permission">
+      <p>🔑 重置人员权限</p>
+      <div class="card">
+        <p><b>权限重置说明</b></p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>可重置揽收员的揽收权限、区域权限</li>
+          <li>重置后即时生效，无需重新登录</li>
+          <li>操作记录将同步至PC POS系统日志</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p><b>选择需要重置的人员</b></p>
+        <div class="item">KEX10086 - 小哥 <span style="color:#fa8c16;">🔄 重置</span></div>
+        <div class="item">KEX10087 - 小李 <span style="color:#fa8c16;">🔄 重置</span></div>
+      </div>
+      <button class="btn primary" onclick="showToast('权限重置成功！')">批量重置选中人员</button>
+      <button class="btn secondary" onclick="go('home')">返回首页</button>
+    </div>
+
+    <!-- 管理员页面：查看全量数据报表 -->
+    <div class="page" id="view-report">
+      <p>📊 查看全量数据报表</p>
+      <div class="card">
+        <p><b>报表数据维度</b></p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>日/周/月揽收量统计</li>
+          <li>各区域揽收效率对比</li>
+          <li>异常订单占比分析</li>
+          <li>揽收员业绩排行</li>
+        </ul>
+      </div>
+      <div class="card">
+        <p><b>今日核心数据</b></p>
+        <div class="item">总揽收量：1286 件</div>
+        <div class="item">异常订单：23 件</div>
+        <div class="item">平均揽收时效：12分钟/单</div>
+      </div>
+      <button class="btn primary" onclick="showToast('报表已导出至PC POS系统！')">导出报表</button>
+      <button class="btn secondary" onclick="go('home')">返回首页</button>
+    </div>
+
+    <!-- 管理员页面：处理权限异常 -->
+    <div class="page" id="handle-exception">
+      <p>⚠️ 处理权限异常</p>
+      <div class="card">
+        <p><b>当前待处理异常</b></p>
+        <div class="item">KEX10086 - 小哥 <br/><small style="color:#ff4d4f;">无Pathum Wan区域揽收权限但多次操作</small></div>
+        <div class="item">KEX10087 - 小李 <br/><small style="color:#ff4d4f;">账号异地登录，权限临时冻结</small></div>
+      </div>
+      <div class="card">
+        <p><b>异常处理操作</b></p>
+        <ul style="margin-left: 20px; margin-top: 8px;">
+          <li>临时授权：开通权限24小时</li>
+          <li>永久授权：更新角色权限配置</li>
+          <li>联系用户：发送权限异常提醒</li>
+        </ul>
+      </div>
+      <button class="btn primary" onclick="showToast('异常处理完成！')">处理选中异常</button>
+      <button class="btn secondary" onclick="go('home')">返回首页</button>
     </div>
   </div>
 
@@ -172,50 +415,159 @@
 
   <script>
     let items = [];
-    let role = 'collector';
+    let role = 'collector'; // collector: 揽收员, admin: 管理员
 
+    // 页面跳转函数优化
     function go(id) {
+      // 管理员角色禁止进入揽收相关页面
+      if (role === 'admin' && ['scan', 'verify', 'confirm', 'success'].includes(id)) {
+        showToast('管理员无揽收操作权限！');
+        return;
+      }
+      
+      // 隐藏所有页面
       document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      document.getElementById(id).classList.add('active');
-      document.getElementById('count').innerText = items.length;
+      // 显示目标页面
+      const targetPage = document.getElementById(id);
+      targetPage.classList.add('active');
+      
+      // 更新包裹数量显示
+      if (document.getElementById('count')) {
+        document.getElementById('count').innerText = items.length;
+      }
+      
+      // 为成功页设置揽收时间
+      if (id === 'success') {
+        const now = new Date();
+        const timeStr = now.getFullYear() + '-' + 
+                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
+                        String(now.getDate()).padStart(2, '0') + ' ' + 
+                        String(now.getHours()).padStart(2, '0') + ':' + 
+                        String(now.getMinutes()).padStart(2, '0') + ':' + 
+                        String(now.getSeconds()).padStart(2, '0');
+        document.getElementById('collectTime').innerText = timeStr;
+      }
+      
+      // 滚动到页面顶部
+      targetPage.scrollTop = 0;
     }
 
+    // 添加包裹项函数优化（KEX开头单号）
     function addItem() {
-      const id = 'YT' + Math.floor(Math.random() * 1000000);
+      const id = 'KEX' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
       items.push(id);
+      
       const div = document.createElement('div');
       div.className = 'item';
-      div.innerText = id;
+      div.innerHTML = `
+        <span>${id}</span>
+        <span style="color: #fa8c16;">✅ 已扫描</span>
+      `;
+      
       document.getElementById('list').appendChild(div);
-      showToast('已扫描 ' + id);
+      showToast('已扫描运单号：' + id);
+      
+      // 自动滚动到最新项
+      const list = document.getElementById('list');
+      list.scrollTop = list.scrollHeight;
     }
 
+    // 提交揽收函数
     function submit() {
+      if (items.length === 0) {
+        showToast('请先扫描包裹！');
+        return;
+      }
+      
       if (role !== 'collector') {
+        showToast('当前角色无揽收权限！');
         go('error');
         return;
       }
-      go('success');
+      
+      // 模拟提交延迟
+      showToast('正在提交揽收信息...');
+      setTimeout(() => {
+        go('success');
+      }, 800);
     }
 
+    // 重置函数
     function reset() {
       items = [];
       document.getElementById('list').innerHTML = '';
       go('home');
+      showToast('已重置，返回首页');
     }
 
+    // 切换角色函数
     function switchRole() {
-      role = role === 'collector' ? 'viewer' : 'collector';
-      document.getElementById('role').innerText = role === 'collector' ? '揽收员' : '仅查看';
-      showToast('当前角色：' + document.getElementById('role').innerText);
+      // 切换角色
+      role = role === 'collector' ? 'admin' : 'collector';
+      const roleText = role === 'collector' ? '揽收员' : '管理员';
+      
+      // 更新角色权限展示区域
+      const permissionCard = document.getElementById('role-permission');
+      const collectBtn = document.getElementById('collect-btn');
+      const adminFunctions = document.getElementById('admin-functions');
+      
+      if (role === 'collector') {
+        // 揽收员角色
+        permissionCard.innerHTML = `
+          <p><b>当前角色：揽收员</b></p>
+          <p>权限：</p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>扫码、校验、确认揽收</li>
+            <li>查看揽收记录</li>
+          </ul>
+        `;
+        collectBtn.style.display = 'block'; // 显示揽收按钮
+        adminFunctions.style.display = 'none'; // 隐藏管理员功能
+      } else {
+        // 管理员角色
+        permissionCard.innerHTML = `
+          <p><b>当前角色：管理员</b></p>
+          <p>权限：</p>
+          <ul style="margin-left: 20px; margin-top: 8px;">
+            <li>分配揽收区域</li>
+            <li>重置人员权限</li>
+            <li>查看全量数据报表</li>
+            <li>处理权限异常</li>
+          </ul>
+        `;
+        collectBtn.style.display = 'none'; // 隐藏揽收按钮
+        adminFunctions.style.display = 'block'; // 显示管理员功能
+      }
+      
+      showToast('角色已切换为：' + roleText);
     }
 
+    // 提示框函数优化
     function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.innerText = msg;
-      t.style.display = 'block';
-      setTimeout(() => t.style.display = 'none', 1500);
+      const toast = document.getElementById('toast');
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      
+      // 清除之前的定时器
+      if (window.toastTimer) {
+        clearTimeout(window.toastTimer);
+      }
+      
+      // 设置新的定时器
+      window.toastTimer = setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2000);
     }
+
+    // 页面加载完成后的初始化
+    document.addEventListener('DOMContentLoaded', function() {
+      // 禁止页面缩放
+      document.addEventListener('touchmove', function(e) {
+        if (e.scale !== 1) {
+          e.preventDefault();
+        }
+      }, { passive: false });
+    });
   </script>
 </body>
 </html>
