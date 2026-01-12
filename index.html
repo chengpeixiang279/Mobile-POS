@@ -1,573 +1,1337 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-  <title>KEX Mobile POS 揽收</title>
-  <style>
-    /* 全局样式重置与基础配置 */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      background: #f5f6f8;
-      font-size: 16px;
-      color: #333;
-    }
-    
-    /* 应用容器 - 完全适配移动端 */
-    .app {
-      width: 100vw;
-      min-height: 100vh;
-      background: #fff;
-      overflow-x: hidden;
-    }
-    
-    /* 头部样式优化 */
-    .header {
-      padding: 16px 20px;
-      font-size: 18px;
-      font-weight: 600;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: #fa8c16;
-      background: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    
-    .logo {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      background: #fa8c16;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 14px;
-    }
-    
-    /* 页面容器优化 - 修复核心问题 */
-    .page {
-      display: none; /* 仅保留初始隐藏 */
-      padding: 24px 20px;
-      min-height: calc(100vh - 74px);
-      flex-direction: column;
-    }
-    
-    .page.active {
-      display: flex; /* 只有active时才显示为flex */
-    }
-    
-    /* 按钮样式增强 */
-    .btn {
-      width: 100%;
-      padding: 16px;
-      margin-top: 16px;
-      font-size: 17px;
-      border-radius: 12px;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.2s ease;
-    }
-    
-    .btn:active {
-      opacity: 0.85;
-      transform: scale(0.98);
-    }
-    
-    .primary {
-      background: #fa8c16;
-      color: #fff;
-    }
-    
-    .secondary {
-      background: #fff7e6;
-      color: #fa8c16;
-      border: 1px solid #ffd591;
-    }
-    
-    .danger {
-      background: #ff4d4f;
-      color: #fff;
-    }
-
-    /* 管理员功能按钮样式 */
-    .admin-btn {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-    }
-    
-    /* 卡片样式优化 */
-    .card {
-      border: 1px solid #eee;
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 16px;
-      background: #fafafa;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-    }
-
-    /* 权限卡片样式 */
-    .permission-card {
-      margin-top: 12px;
-      border-color: #fa8c16;
-      background: #fff8ed;
-    }
-    
-    /* 列表样式优化 */
-    .list {
-      margin-top: 16px;
-      flex: 1;
-      overflow-y: auto;
-      max-height: 300px;
-    }
-    
-    .item {
-      padding: 12px 16px;
-      border-bottom: 1px dashed #ddd;
-      font-size: 15px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .item:last-child {
-      border-bottom: none;
-    }
-    
-    /* 文本样式优化 */
-    p {
-      margin-bottom: 8px;
-      line-height: 1.5;
-    }
-
-    .user-info {
-      margin-bottom: 16px;
-      line-height: 1.8;
-    }
-    
-    /* 提示框优化 */
-    .toast {
-      position: fixed;
-      bottom: 40px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 24px;
-      display: none;
-      z-index: 999;
-      font-size: 15px;
-      min-width: 120px;
-      text-align: center;
-    }
-    
-    /* 扫码区域样式增强 */
-    .scan-area {
-      border: 2px dashed #fa8c16;
-      border-radius: 12px;
-      padding: 40px 20px;
-      text-align: center;
-      color: #fa8c16;
-      margin-top: 16px;
-    }
-    
-    /* 加载动画样式 */
-    .loading {
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 3px solid rgba(250,140,22,0.3);
-      border-radius: 50%;
-      border-top-color: #fa8c16;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 8px;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-  </style>
-</head>
-<body>
-  <div class="app">
-    <div class="header">
-      <div class="logo">KEX</div>
-      <span>Mobile POS 揽收系统</span>
-    </div>
-
-    <!-- 首页 -->
-    <div class="page active" id="home">
-      <div class="user-info">
-        你好，欢迎进入Mobile POS揽收系统，您的工号是<b>KEX10086</b>，绑定门店代码为<b>SH001</b>。
-      </div>
-      <div id="role-permission" class="card permission-card">
-        <p><b>当前角色：揽收员</b></p>
-        <p>权限：</p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>扫码、校验、确认揽收</li>
-          <li>查看揽收记录</li>
-        </ul>
-      </div>
-      <button class="btn primary" id="collect-btn" onclick="go('scan')">📦 批量扫码揽收</button>
-      <button class="btn secondary" onclick="switchRole()">切换角色</button>
-      
-      <!-- 管理员功能入口（默认隐藏） -->
-      <div id="admin-functions" style="display: none;">
-        <button class="btn secondary admin-btn" onclick="go('assign-area')">📍 分配揽收区域</button>
-        <button class="btn secondary admin-btn" onclick="go('reset-permission')">🔑 重置人员权限</button>
-        <button class="btn secondary admin-btn" onclick="go('view-report')">📊 查看全量数据报表</button>
-        <button class="btn secondary admin-btn" onclick="go('handle-exception')">⚠️ 处理权限异常</button>
-      </div>
-    </div>
-
-    <!-- 批量扫码页（揽收员） -->
-    <div class="page" id="scan">
-      <p>连续扫描包裹面单</p>
-      <div class="card scan-area">📷 点击下方按钮模拟扫码<br/>（实际为摄像头扫码识别）</div>
-      <button class="btn primary" onclick="addItem()">+ 模拟扫描一个包裹</button>
-      <div class="list" id="list"></div>
-      <button class="btn secondary" onclick="go('verify')">完成扫码，去校验</button>
-    </div>
-
-    <!-- 校验页（揽收员） -->
-    <div class="page" id="verify">
-      <p><span class="loading"></span>PC POS 后端正在校验…</p>
-      <div class="card">
-        <p>✅ PC POS 后端正在校验：</p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>订单是否存在且有效</li>
-          <li>订单状态是否允许揽收</li>
-          <li>当前账号是否有揽收权限</li>
-        </ul>
-      </div>
-      <button class="btn primary" onclick="go('confirm')">校验通过</button>
-      <button class="btn danger" onclick="go('error')">存在异常</button>
-    </div>
-
-    <!-- 确认页（揽收员） -->
-    <div class="page" id="confirm">
-      <p>确认揽收以下包裹（<span id="count">0</span> 件）</p>
-      <div class="card">
-        <p>⚠️ 批量揽收确认后：</p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>所有包裹将标记为【已揽收（现场）】</li>
-          <li>状态将同步至 PC POS 系统</li>
-          <li>包裹可直接送往中转场</li>
-        </ul>
-      </div>
-      <button class="btn primary" onclick="submit()">✅ 确认揽收</button>
-    </div>
-
-    <!-- 成功页（揽收员） -->
-    <div class="page" id="success">
-      <p>🎉 揽收成功</p>
-      <div class="card">
-        <p>所有包裹已标记为【已揽收（现场）】</p>
-        <p style="margin-top: 8px; color: #666; font-size: 14px;">揽收时间：<span id="collectTime"></span></p>
-        <p style="color: #666; font-size: 14px;">揽收人：小哥（ID：KEX10086）</p>
-      </div>
-      <button class="btn secondary" onclick="go('sync')">查看与 PC POS 状态联动</button>
-      <button class="btn secondary" onclick="reset()">返回首页</button>
-    </div>
-
-    <!-- PC POS 状态联动说明页 -->
-    <div class="page" id="sync">
-      <p>📡 与 PC POS 的状态联动说明</p>
-      <div class="card">
-        <p><b>1. 揽收状态同步</b></p>
-        <p>Mobile POS 提交成功后，POS 后端已将订单状态更新为 <b>已揽收</b>。</p>
-      </div>
-      <div class="card">
-        <p><b>2. PC POS 可见内容</b></p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>订单状态：已揽收（来源：Mobile POS）</li>
-          <li>揽收时间 / 揽收人信息</li>
-          <li>支持后续称重、计费、对账操作</li>
-        </ul>
-      </div>
-      <div class="card">
-        <p><b>3. 后续处理原则</b></p>
-        <p>PC POS 不重复揽收，仅处理异常订单和后链路业务。</p>
-      </div>
-      <button class="btn primary" onclick="go('home')">我知道了</button>
-    </div>
-
-    <!-- 异常页 -->
-    <div class="page" id="error">
-      <p>❌ 权限或订单异常</p>
-      <div class="card">
-        <p>异常原因：</p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>当前角色无揽收操作权限</li>
-          <li>部分订单状态异常（已取消/已揽收）</li>
-          <li>网络异常，无法同步订单信息</li>
-        </ul>
-        <p style="margin-top: 12px; color: #ff4d4f;">请返回首页重新操作或联系管理员</p>
-      </div>
-      <button class="btn secondary" onclick="reset()">返回首页</button>
-    </div>
-
-    <!-- 管理员页面：分配揽收区域 -->
-    <div class="page" id="assign-area">
-      <p>📍 分配揽收区域</p>
-      <div class="card">
-        <p><b>区域分配规则</b></p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>按行政区域划分：Pathum Wan、Sukhumvit、Chatuchak、Bang Rak、Ratchathewi、Lat Phrao 等</li>
-          <li>每个区域绑定1-3名揽收员</li>
-          <li>支持临时调整（如小哥请假代派）</li>
-        </ul>
-      </div>
-      <div class="card">
-        <p><b>当前待分配人员</b></p>
-        <div class="item">KEX10086 - 小哥</div>
-        <div class="item">KEX10087 - 小李</div>
-        <div class="item">KEX10088 - 小张</div>
-      </div>
-      <button class="btn primary" onclick="showToast('区域分配成功！')">确认分配</button>
-      <button class="btn secondary" onclick="go('home')">返回首页</button>
-    </div>
-
-    <!-- 管理员页面：重置人员权限 -->
-    <div class="page" id="reset-permission">
-      <p>🔑 重置人员权限</p>
-      <div class="card">
-        <p><b>权限重置说明</b></p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>可重置揽收员的揽收权限、区域权限</li>
-          <li>重置后即时生效，无需重新登录</li>
-          <li>操作记录将同步至PC POS系统日志</li>
-        </ul>
-      </div>
-      <div class="card">
-        <p><b>选择需要重置的人员</b></p>
-        <div class="item">KEX10086 - 小哥 <span style="color:#fa8c16;">🔄 重置</span></div>
-        <div class="item">KEX10087 - 小李 <span style="color:#fa8c16;">🔄 重置</span></div>
-      </div>
-      <button class="btn primary" onclick="showToast('权限重置成功！')">批量重置选中人员</button>
-      <button class="btn secondary" onclick="go('home')">返回首页</button>
-    </div>
-
-    <!-- 管理员页面：查看全量数据报表 -->
-    <div class="page" id="view-report">
-      <p>📊 查看全量数据报表</p>
-      <div class="card">
-        <p><b>报表数据维度</b></p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>日/周/月揽收量统计</li>
-          <li>各区域揽收效率对比</li>
-          <li>异常订单占比分析</li>
-          <li>揽收员业绩排行</li>
-        </ul>
-      </div>
-      <div class="card">
-        <p><b>今日核心数据</b></p>
-        <div class="item">总揽收量：1286 件</div>
-        <div class="item">异常订单：23 件</div>
-        <div class="item">平均揽收时效：12分钟/单</div>
-      </div>
-      <button class="btn primary" onclick="showToast('报表已导出至PC POS系统！')">导出报表</button>
-      <button class="btn secondary" onclick="go('home')">返回首页</button>
-    </div>
-
-    <!-- 管理员页面：处理权限异常 -->
-    <div class="page" id="handle-exception">
-      <p>⚠️ 处理权限异常</p>
-      <div class="card">
-        <p><b>当前待处理异常</b></p>
-        <div class="item">KEX10086 - 小哥 <br/><small style="color:#ff4d4f;">无Pathum Wan区域揽收权限但多次操作</small></div>
-        <div class="item">KEX10087 - 小李 <br/><small style="color:#ff4d4f;">账号异地登录，权限临时冻结</small></div>
-      </div>
-      <div class="card">
-        <p><b>异常处理操作</b></p>
-        <ul style="margin-left: 20px; margin-top: 8px;">
-          <li>临时授权：开通权限24小时</li>
-          <li>永久授权：更新角色权限配置</li>
-          <li>联系用户：发送权限异常提醒</li>
-        </ul>
-      </div>
-      <button class="btn primary" onclick="showToast('异常处理完成！')">处理选中异常</button>
-      <button class="btn secondary" onclick="go('home')">返回首页</button>
-    </div>
-  </div>
-
-  <div class="toast" id="toast">提示</div>
-
-  <script>
-    let items = [];
-    let role = 'collector'; // collector: 揽收员, admin: 管理员
-
-    // 页面跳转函数优化
-    function go(id) {
-      // 管理员角色禁止进入揽收相关页面
-      if (role === 'admin' && ['scan', 'verify', 'confirm', 'success'].includes(id)) {
-        showToast('管理员无揽收操作权限！');
-        return;
-      }
-      
-      // 隐藏所有页面
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      // 显示目标页面
-      const targetPage = document.getElementById(id);
-      targetPage.classList.add('active');
-      
-      // 更新包裹数量显示
-      if (document.getElementById('count')) {
-        document.getElementById('count').innerText = items.length;
-      }
-      
-      // 为成功页设置揽收时间
-      if (id === 'success') {
-        const now = new Date();
-        const timeStr = now.getFullYear() + '-' + 
-                        String(now.getMonth() + 1).padStart(2, '0') + '-' + 
-                        String(now.getDate()).padStart(2, '0') + ' ' + 
-                        String(now.getHours()).padStart(2, '0') + ':' + 
-                        String(now.getMinutes()).padStart(2, '0') + ':' + 
-                        String(now.getSeconds()).padStart(2, '0');
-        document.getElementById('collectTime').innerText = timeStr;
-      }
-      
-      // 滚动到页面顶部
-      targetPage.scrollTop = 0;
-    }
-
-    // 添加包裹项函数优化（KEX开头单号）
-    function addItem() {
-      const id = 'KEX' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-      items.push(id);
-      
-      const div = document.createElement('div');
-      div.className = 'item';
-      div.innerHTML = `
-        <span>${id}</span>
-        <span style="color: #fa8c16;">✅ 已扫描</span>
-      `;
-      
-      document.getElementById('list').appendChild(div);
-      showToast('已扫描运单号：' + id);
-      
-      // 自动滚动到最新项
-      const list = document.getElementById('list');
-      list.scrollTop = list.scrollHeight;
-    }
-
-    // 提交揽收函数
-    function submit() {
-      if (items.length === 0) {
-        showToast('请先扫描包裹！');
-        return;
-      }
-      
-      if (role !== 'collector') {
-        showToast('当前角色无揽收权限！');
-        go('error');
-        return;
-      }
-      
-      // 模拟提交延迟
-      showToast('正在提交揽收信息...');
-      setTimeout(() => {
-        go('success');
-      }, 800);
-    }
-
-    // 重置函数
-    function reset() {
-      items = [];
-      document.getElementById('list').innerHTML = '';
-      go('home');
-      showToast('已重置，返回首页');
-    }
-
-    // 切换角色函数
-    function switchRole() {
-      // 切换角色
-      role = role === 'collector' ? 'admin' : 'collector';
-      const roleText = role === 'collector' ? '揽收员' : '管理员';
-      
-      // 更新角色权限展示区域
-      const permissionCard = document.getElementById('role-permission');
-      const collectBtn = document.getElementById('collect-btn');
-      const adminFunctions = document.getElementById('admin-functions');
-      
-      if (role === 'collector') {
-        // 揽收员角色
-        permissionCard.innerHTML = `
-          <p><b>当前角色：揽收员</b></p>
-          <p>权限：</p>
-          <ul style="margin-left: 20px; margin-top: 8px;">
-            <li>扫码、校验、确认揽收</li>
-            <li>查看揽收记录</li>
-          </ul>
-        `;
-        collectBtn.style.display = 'block'; // 显示揽收按钮
-        adminFunctions.style.display = 'none'; // 隐藏管理员功能
-      } else {
-        // 管理员角色
-        permissionCard.innerHTML = `
-          <p><b>当前角色：管理员</b></p>
-          <p>权限：</p>
-          <ul style="margin-left: 20px; margin-top: 8px;">
-            <li>分配揽收区域</li>
-            <li>重置人员权限</li>
-            <li>查看全量数据报表</li>
-            <li>处理权限异常</li>
-          </ul>
-        `;
-        collectBtn.style.display = 'none'; // 隐藏揽收按钮
-        adminFunctions.style.display = 'block'; // 显示管理员功能
-      }
-      
-      showToast('角色已切换为：' + roleText);
-    }
-
-    // 提示框函数优化
-    function showToast(msg) {
-      const toast = document.getElementById('toast');
-      toast.innerText = msg;
-      toast.style.display = 'block';
-      
-      // 清除之前的定时器
-      if (window.toastTimer) {
-        clearTimeout(window.toastTimer);
-      }
-      
-      // 设置新的定时器
-      window.toastTimer = setTimeout(() => {
-        toast.style.display = 'none';
-      }, 2000);
-    }
-
-    // 页面加载完成后的初始化
-    document.addEventListener('DOMContentLoaded', function() {
-      // 禁止页面缩放
-      document.addEventListener('touchmove', function(e) {
-        if (e.scale !== 1) {
-          e.preventDefault();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile POS 物流揽收系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#F59E0B', // 主色调改为橙色
+                        secondary: '#1E40AF', // 辅助色-蓝色
+                        success: '#10B981', // 成功色-绿色
+                        danger: '#EF4444', // 危险色-红色
+                        neutral: '#6B7280', // 中性色-灰色
+                        light: '#F3F4F6', // 浅色背景
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
         }
-      }, { passive: false });
-    });
-  </script>
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .scrollbar-hide {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+            .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .btn-active {
+                @apply bg-primary text-white;
+            }
+            .btn-inactive {
+                @apply bg-white text-primary border border-primary;
+            }
+            .modal-backdrop {
+                @apply fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 opacity-0 invisible transition-all duration-300;
+            }
+            .modal-backdrop.show {
+                @apply opacity-100 visible;
+            }
+            .modal-content {
+                @apply bg-white rounded-xl w-full max-w-md max-h-[90vh] overflow-y-auto transform translate-y-8 transition-transform duration-300;
+            }
+            .modal-backdrop.show .modal-content {
+                @apply translate-y-0;
+            }
+            /* 通用点击反馈样式 */
+            .clickable {
+                @apply cursor-pointer transition-all duration-200;
+            }
+            .clickable:active {
+                @apply scale-95 opacity-90;
+            }
+            .btn-hover {
+                @apply hover:shadow-md hover:brightness-95 transition-all duration-200;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header class="fixed top-0 left-0 right-0 bg-white shadow-sm z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center">
+                <i class="fa fa-truck text-primary text-2xl mr-2"></i>
+                <h1 class="text-xl font-bold text-primary">KEX-Mobile POS 揽收系统</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button class="p-2 rounded-full hover:bg-gray-100 clickable relative">
+                    <i class="fa fa-bell text-gray-600"></i>
+                    <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+                </button>
+                <button class="p-2 rounded-full hover:bg-gray-100 clickable">
+                    <i class="fa fa-user text-gray-600"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 pt-20 pb-20">
+        <!-- 欢迎信息 -->
+        <div class="mb-6 bg-white rounded-xl p-4 card-shadow">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-semibold">您好，用户</h2>
+                <span class="text-sm text-gray-500" id="current-date"></span>
+            </div>
+            <div class="flex space-x-3">
+                <button class="flex-1 py-2 rounded-lg btn-active flex items-center justify-center clickable btn-hover" id="tab-scan-btn">
+                    <i class="fa fa-qrcode mr-2"></i> 扫描揽收
+                </button>
+                <button class="flex-1 py-2 rounded-lg btn-inactive flex items-center justify-center clickable btn-hover" id="tab-history-btn">
+                    <i class="fa fa-history mr-2"></i> 历史记录
+                </button>
+            </div>
+        </div>
+
+        <!-- 扫描揽收区域 -->
+        <div id="scan-tab" class="space-y-6">
+            <!-- 批量扫描区域 (替换原D2H编号栏) -->
+            <div class="bg-white rounded-xl p-4 card-shadow">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-medium">批量扫描揽收</h3>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm bg-primary/10 text-primary px-2 py-1 rounded-full" id="batch-count">已扫描: 0 件</span>
+                        <button class="text-sm text-gray-500 hover:text-primary clickable btn-hover" id="clear-batch-btn">
+                            <i class="fa fa-trash-o"></i> 清空
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 扫描区域 -->
+                <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-all duration-300 clickable btn-hover mb-4" id="scan-area">
+                    <i class="fa fa-qrcode text-5xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-500 mb-4">将码放入扫描区域 或 手动输入运单号</p>
+                    <input type="text" placeholder="输入运单号并按回车添加" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm transition-all duration-200" id="waybill-input">
+                </div>
+                
+                <!-- 已扫描包裹列表 -->
+                <div class="max-h-[200px] overflow-y-auto scrollbar-hide border border-gray-100 rounded-lg p-2" id="batch-list">
+                    <div class="text-center text-gray-400 py-6" id="empty-batch-state">
+                        <i class="fa fa-box text-3xl mb-2"></i>
+                        <p>暂无扫描的包裹</p>
+                    </div>
+                    <!-- 批量包裹项将动态添加到这里 -->
+                </div>
+                
+                <!-- 批量操作按钮 -->
+                <div class="flex space-x-2 mt-4">
+                    <button class="flex-1 py-2 bg-white border border-gray-300 rounded-lg text-sm text-gray-700 flex items-center justify-center clickable btn-hover">
+                        <i class="fa fa-camera mr-1"></i> 连续扫描
+                    </button>
+                    <button class="flex-1 py-2 bg-primary text-white rounded-lg text-sm flex items-center justify-center clickable btn-hover" id="batch-collect-btn" disabled>
+                        <i class="fa fa-check mr-1"></i> 确认揽收选中包裹
+                    </button>
+                </div>
+            </div>
+
+            <!-- 单个包裹详情 (选中包裹后显示) -->
+            <div class="bg-white rounded-xl p-4 card-shadow hidden" id="package-detail">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-medium">包裹详情</h3>
+                    <button class="text-sm text-primary clickable btn-hover">编辑</button>
+                </div>
+
+                <!-- 寄件人 -->
+                <div class="mb-5">
+                    <h4 class="text-sm font-medium text-gray-500 mb-2">寄件人</h4>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-medium" id="sender-name">宋先生</span>
+                        <button class="text-gray-400 hover:text-primary clickable btn-hover">
+                            <i class="fa fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <p class="text-gray-600 text-sm" id="sender-phone">081-XXXXXXX</p>
+                </div>
+
+                <!-- 收件人 -->
+                <div class="mb-5">
+                    <h4 class="text-sm font-medium text-gray-500 mb-2">收件人</h4>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="font-medium" id="receiver-name">维拉蓬女士</span>
+                        <button class="text-gray-400 hover:text-primary clickable btn-hover">
+                            <i class="fa fa-eye-slash"></i>
+                        </button>
+                    </div>
+                    <p class="text-gray-600 text-sm" id="receiver-phone">089-XXXXXXX</p>
+                    <p class="text-gray-600 text-sm mt-1" id="receiver-address">曼谷隆披尼区素坤逸路123号 10110</p>
+                    <p class="text-gray-600 text-sm" id="receiver-zip">邮政编码: 10110</p>
+                </div>
+
+                <!-- 包裹信息 -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-500 mb-2">包裹信息</h4>
+                    <div class="grid grid-cols-3 gap-3 mb-3">
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">重量 (Kg)</label>
+                            <input type="number" value="1.250" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">宽度 (cm)</label>
+                            <input type="number" value="30" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">高度 (cm)</label>
+                            <input type="number" value="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">长度 (cm)</label>
+                            <input type="number" value="40" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">包裹类型</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                                <option>包装商品</option>
+                                <option>文件</option>
+                                <option>小件商品</option>
+                                <option>大件商品</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COD信息 -->
+            <div class="bg-white rounded-xl p-4 card-shadow hidden" id="cod-section">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-medium">COD 信息</h3>
+                    <label class="relative inline-flex items-center cursor-pointer clickable">
+                        <input type="checkbox" checked class="sr-only peer" id="cod-toggle">
+                        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-all duration-300"></div>
+                    </label>
+                </div>
+                <div class="grid grid-cols-2 gap-3" id="cod-content">
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">COD 金额</label>
+                        <input type="number" value="2500.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-right text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">税率 (%)</label>
+                        <input type="number" value="7.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-right text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 服务费 -->
+            <div class="bg-white rounded-xl p-4 card-shadow hidden" id="fee-section">
+                <h3 class="font-medium mb-3">服务费用</h3>
+                <div class="space-y-2 mb-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">运费</span>
+                        <span>150.00 泰铢</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">COD 费用</span>
+                        <span>50.00 泰铢</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">保险费</span>
+                        <span>30.00 泰铢</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">增值税 VAT (7%)</span>
+                        <span>16.10 泰铢</span>
+                    </div>
+                </div>
+                <div class="border-t border-gray-200 pt-3 flex justify-between font-bold">
+                    <span>总计</span>
+                    <span class="text-primary text-lg">246.10 泰铢</span>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="flex space-x-3 hidden" id="action-buttons">
+                <button class="flex-1 py-3 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 flex items-center justify-center clickable btn-hover">
+                    <i class="fa fa-print mr-2"></i> 打印标签
+                </button>
+                <button class="flex-1 py-3 bg-primary text-white rounded-lg font-medium flex items-center justify-center clickable btn-hover" id="confirm-collection-btn">
+                    <i class="fa fa-check mr-2"></i> 确认揽收
+                </button>
+            </div>
+        </div>
+
+        <!-- 历史记录管理区域 (默认隐藏) -->
+        <div id="manage-tab" class="space-y-6 hidden">
+            <div class="bg-white rounded-xl p-4 card-shadow">
+                <h3 class="font-medium mb-4">查找记录</h3>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">创建日期</label>
+                        <input type="date" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">运单号</label>
+                        <input type="text" placeholder="输入运单号" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">寄件人姓名</label>
+                        <input type="text" placeholder="输入寄件人姓名" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">寄件人电话</label>
+                        <input type="text" placeholder="输入电话号码" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                    </div>
+                </div>
+                <button class="w-full py-2 bg-primary text-white rounded-lg text-sm font-medium clickable btn-hover">
+                    <i class="fa fa-search mr-1"></i> 查找
+                </button>
+            </div>
+
+            <!-- 记录列表 -->
+            <div class="bg-white rounded-xl card-shadow">
+                <div class="p-4 border-b border-gray-100">
+                    <h3 class="font-medium">最近揽收记录</h3>
+                </div>
+                <div class="max-h-[300px] overflow-y-auto scrollbar-hide" id="history-list-container">
+                    <!-- 历史记录将动态生成 -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部导航按钮 -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg z-40">
+        <div class="grid grid-cols-4 py-3">
+            <button class="flex flex-col items-center justify-center text-primary clickable btn-hover" id="nav-scan">
+                <i class="fa fa-qrcode text-xl mb-1"></i>
+                <span class="text-xs font-medium">扫描揽收</span>
+            </button>
+            <button class="flex flex-col items-center justify-center text-gray-500 clickable btn-hover" id="nav-list">
+                <i class="fa fa-list-alt text-xl mb-1"></i>
+                <span class="text-xs">记录列表</span>
+            </button>
+            <button class="flex flex-col items-center justify-center text-gray-500 clickable btn-hover" id="nav-payment">
+                <i class="fa fa-credit-card text-xl mb-1"></i>
+                <span class="text-xs">支付结算</span>
+            </button>
+            <button class="flex flex-col items-center justify-center text-gray-500 clickable btn-hover" id="nav-settings">
+                <i class="fa fa-cog text-xl mb-1"></i>
+                <span class="text-xs">设置</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- 订单详情弹窗 (默认隐藏) -->
+    <div id="order-detail-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="font-bold text-lg">订单详情</h3>
+                <button class="text-gray-500 hover:text-gray-800 clickable btn-hover" id="close-modal-btn">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="font-medium">订单编号</span>
+                    <span class="font-bold" id="detail-order-id">KEX-2024-0001</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-medium">订单状态</span>
+                    <span class="px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full" id="detail-status">已完成</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-medium">创建时间</span>
+                    <span id="detail-date">2024/01/12 10:30:45</span>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3 mt-3">
+                    <h4 class="font-medium mb-2">寄件人信息</h4>
+                    <div class="text-sm space-y-1">
+                        <p><span class="text-gray-500">姓名：</span><span id="detail-sender-name">宋先生</span></p>
+                        <p><span class="text-gray-500">电话：</span><span id="detail-sender-phone">081-XXXXXXX</span></p>
+                        <p><span class="text-gray-500">地址：</span><span id="detail-sender-address">曼谷隆披尼区素坤逸路123号 10110</span></p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3 mt-3">
+                    <h4 class="font-medium mb-2">收件人信息</h4>
+                    <div class="text-sm space-y-1">
+                        <p><span class="text-gray-500">姓名：</span><span id="detail-receiver-name">维拉蓬女士</span></p>
+                        <p><span class="text-gray-500">电话：</span><span id="detail-receiver-phone">089-XXXXXXX</span></p>
+                        <p><span class="text-gray-500">地址：</span><span id="detail-receiver-address">曼谷隆披尼区素坤逸路456号 10110</span></p>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3 mt-3">
+                    <h4 class="font-medium mb-2">包裹信息</h4>
+                    <div class="grid grid-cols-2 gap-2 text-sm">
+                        <div><span class="text-gray-500">重量：</span>1.250 Kg</div>
+                        <div><span class="text-gray-500">尺寸：</span>40×30×20 cm</div>
+                        <div><span class="text-gray-500">类型：</span>包装商品</div>
+                        <div><span class="text-gray-500">COD：</span><span id="detail-cod-amount">2500.00</span> 泰铢</div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3 mt-3">
+                    <h4 class="font-medium mb-2">费用明细</h4>
+                    <div class="text-sm space-y-1">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">运费：</span>
+                            <span>150.00 泰铢</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">COD 费用：</span>
+                            <span>50.00 泰铢</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">保险费：</span>
+                            <span>30.00 泰铢</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">增值税 VAT (7%)：</span>
+                            <span>16.10 泰铢</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold">
+                            <span>总计：</span>
+                            <span class="text-primary" id="detail-total-amount">246.10 泰铢</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3 mt-3">
+                    <h4 class="font-medium mb-2">支付信息</h4>
+                    <div class="text-sm space-y-1">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">支付方式：</span>
+                            <span>现金</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">支付时间：</span>
+                            <span id="detail-payment-time">2024/01/12 10:35:20</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3 mt-6">
+                    <button class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium clickable btn-hover">
+                        <i class="fa fa-print mr-1"></i> 打印单据
+                    </button>
+                    <button class="flex-1 py-2 bg-primary text-white rounded-lg text-sm font-medium clickable btn-hover">
+                        <i class="fa fa-repeat mr-1"></i> 重新揽收
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支付结算弹窗 (默认隐藏) -->
+    <div id="payment-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="font-bold text-lg">支付结算</h3>
+                <button class="text-gray-500 hover:text-gray-800 clickable btn-hover" id="close-payment-btn">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-4">
+                <div class="text-center mb-4">
+                    <h4 class="text-xl font-bold text-primary" id="payment-total-amount">246.10 泰铢</h4>
+                    <p class="text-gray-500 text-sm">需支付金额</p>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3">
+                    <h4 class="font-medium mb-3">选择支付方式</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 clickable transition-all duration-200 payment-method">
+                            <input type="radio" name="payment-method" value="cash" class="mr-3" checked>
+                            <div class="flex items-center flex-1">
+                                <i class="fa fa-money text-xl text-green-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium">现金</div>
+                                    <div class="text-xs text-gray-500">当面收取现金</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 clickable transition-all duration-200 payment-method">
+                            <input type="radio" name="payment-method" value="card" class="mr-3">
+                            <div class="flex items-center flex-1">
+                                <i class="fa fa-credit-card text-xl text-blue-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium">银行卡</div>
+                                    <div class="text-xs text-gray-500">刷卡/扫码支付</div>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 clickable transition-all duration-200 payment-method">
+                            <input type="radio" name="payment-method" value="transfer" class="mr-3">
+                            <div class="flex items-center flex-1">
+                                <i class="fa fa-bank text-xl text-purple-600 mr-3"></i>
+                                <div>
+                                    <div class="font-medium">银行转账</div>
+                                    <div class="text-xs text-gray-500">银行转账/扫码转账</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-3">
+                    <h4 class="font-medium mb-2">支付信息</h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">实收金额</label>
+                            <input type="number" value="246.10" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="received-amount">
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">找零金额</label>
+                            <input type="number" value="0.00" class="w-full px-3 py-2 border border-gray-300 bg-gray-50 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="change-amount" readonly>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">备注</label>
+                            <textarea class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm h-16 resize-none focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" placeholder="输入支付备注信息..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="w-full py-3 bg-primary text-white rounded-lg font-medium mt-4 clickable btn-hover" id="confirm-payment-btn">
+                    <i class="fa fa-check mr-2"></i> 确认支付
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置页面弹窗 (新增) -->
+    <div id="settings-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="font-bold text-lg">系统设置</h3>
+                <button class="text-gray-500 hover:text-gray-800 clickable btn-hover" id="close-settings-btn">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-6">
+                <!-- 个人信息 -->
+                <div class="border-b border-gray-200 pb-4">
+                    <h4 class="font-medium mb-3">个人信息</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary mr-3">
+                                    <i class="fa fa-user"></i>
+                                </div>
+                                <div>
+                                    <div class="font-medium">系统管理员</div>
+                                    <div class="text-xs text-gray-500">admin@kex-pos.com</div>
+                                </div>
+                            </div>
+                            <button class="text-sm text-primary clickable btn-hover">
+                                <i class="fa fa-edit mr-1"></i> 编辑
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 通用设置 -->
+                <div>
+                    <h4 class="font-medium mb-3">通用设置</h4>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">声音提示</div>
+                                <div class="text-xs text-gray-500">扫描和操作时的声音反馈</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer clickable">
+                                <input type="checkbox" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-all duration-300"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">自动打印标签</div>
+                                <div class="text-xs text-gray-500">揽收成功后自动打印包裹标签</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer clickable">
+                                <input type="checkbox" class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-all duration-300"></div>
+                            </label>
+                        </div>
+                        
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <div class="font-medium">批量揽收模式</div>
+                                <div class="text-xs text-gray-500">支持一次性扫描多个包裹</div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer clickable">
+                                <input type="checkbox" checked class="sr-only peer">
+                                <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary transition-all duration-300"></div>
+                            </label>
+                        </div>
+                        
+                        <div>
+                            <label class="text-xs text-gray-500 block mb-1">默认支付方式</label>
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                                <option>现金</option>
+                                <option>银行卡</option>
+                                <option>银行转账</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 高级设置 -->
+                <div>
+                    <h4 class="font-medium mb-3">高级设置</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between clickable hover:bg-gray-50 p-2 rounded-lg transition-all duration-200">
+                            <div>
+                                <div class="font-medium">数据备份</div>
+                                <div class="text-xs text-gray-500">导出揽收记录到Excel</div>
+                            </div>
+                            <i class="fa fa-chevron-right text-gray-400"></i>
+                        </div>
+                        
+                        <div class="flex items-center justify-between clickable hover:bg-gray-50 p-2 rounded-lg transition-all duration-200">
+                            <div>
+                                <div class="font-medium">清除缓存</div>
+                                <div class="text-xs text-gray-500">释放本地存储空间</div>
+                            </div>
+                            <i class="fa fa-chevron-right text-gray-400"></i>
+                        </div>
+                        
+                        <div class="flex items-center justify-between clickable hover:bg-gray-50 p-2 rounded-lg transition-all duration-200">
+                            <div>
+                                <div class="font-medium">关于系统</div>
+                                <div class="text-xs text-gray-500">版本号: v1.0.0</div>
+                            </div>
+                            <i class="fa fa-chevron-right text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 退出登录 -->
+                <button class="w-full py-3 bg-white border border-danger text-danger rounded-lg font-medium clickable btn-hover">
+                    <i class="fa fa-sign-out mr-2"></i> 退出登录
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 支付成功提示 -->
+    <div id="success-toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-success text-white px-6 py-3 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50 flex items-center">
+        <i class="fa fa-check-circle text-xl mr-2"></i>
+        <span>支付成功！订单已完成</span>
+    </div>
+
+    <!-- 批量扫描成功提示 -->
+    <div id="scan-toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-primary text-white px-6 py-3 rounded-lg shadow-lg opacity-0 invisible transition-all duration-300 z-50 flex items-center">
+        <i class="fa fa-check-circle text-xl mr-2"></i>
+        <span id="scan-toast-text">包裹扫描成功！</span>
+    </div>
+
+    <script>
+        // 全局数据存储
+        let appData = {
+            // 模拟包裹数据
+            mockPackages: [
+                {
+                    waybill: 'KEX8880001',
+                    sender: { name: '宋先生', phone: '081-XXXXXXX', address: '曼谷隆披尼区素坤逸路123号 10110' },
+                    receiver: { name: '维拉蓬女士', phone: '089-XXXXXXX', address: '曼谷隆披尼区素坤逸路456号 10110', zip: '邮政编码: 10110' },
+                    cod: true,
+                    codAmount: 2500.00,
+                    totalAmount: 246.10
+                },
+                {
+                    waybill: 'KEX8880002',
+                    sender: { name: '李先生', phone: '082-XXXXXXX', address: '曼谷沙吞区沙吞路45号 10120' },
+                    receiver: { name: '苏查达女士', phone: '087-XXXXXXX', address: '曼谷沙吞区沙吞路78号 10120', zip: '邮政编码: 10120' },
+                    cod: false,
+                    codAmount: 0.00,
+                    totalAmount: 350.00
+                },
+                {
+                    waybill: 'KEX8880003',
+                    sender: { name: '王女士', phone: '083-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路78号 10900' },
+                    receiver: { name: '阿南先生', phone: '091-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路99号 10900', zip: '邮政编码: 10900' },
+                    cod: true,
+                    codAmount: 1800.00,
+                    totalAmount: 180.00
+                }
+            ],
+            // 已扫描的包裹列表
+            scannedPackages: [],
+            // 历史揽收记录
+            historyRecords: [],
+            // 订单ID计数器
+            orderIdCounter: 20240001
+        };
+
+        // 设置当前日期
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('current-date').textContent = today.toLocaleDateString('zh-CN', options);
+
+            // 初始化历史记录
+            initHistoryRecords();
+            
+            // 渲染历史记录列表
+            renderHistoryList();
+
+            // 切换标签
+            const scanBtn = document.getElementById('tab-scan-btn');
+            const historyBtn = document.getElementById('tab-history-btn');
+            const scanTab = document.getElementById('scan-tab');
+            const manageTab = document.getElementById('manage-tab');
+
+            scanBtn.addEventListener('click', function() {
+                scanBtn.classList.remove('btn-inactive');
+                scanBtn.classList.add('btn-active');
+                historyBtn.classList.remove('btn-active');
+                historyBtn.classList.add('btn-inactive');
+                scanTab.classList.remove('hidden');
+                manageTab.classList.add('hidden');
+                
+                // 更新底部导航状态
+                updateNavActive('nav-scan');
+            });
+
+            historyBtn.addEventListener('click', function() {
+                historyBtn.classList.remove('btn-inactive');
+                historyBtn.classList.add('btn-active');
+                scanBtn.classList.remove('btn-active');
+                scanBtn.classList.add('btn-inactive');
+                scanTab.classList.add('hidden');
+                manageTab.classList.remove('hidden');
+                
+                // 更新底部导航状态
+                updateNavActive('nav-list');
+                // 重新渲染历史记录
+                renderHistoryList();
+            });
+
+            // 底部导航按钮
+            const navButtons = document.querySelectorAll('nav button');
+            navButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    updateNavActive(this.id);
+                    
+                    // 根据导航切换标签
+                    if (this.id === 'nav-scan') {
+                        scanBtn.click();
+                    } else if (this.id === 'nav-list') {
+                        historyBtn.click();
+                    } else if (this.id === 'nav-payment') {
+                        // 打开支付弹窗
+                        openPaymentModal();
+                    } else if (this.id === 'nav-settings') {
+                        // 打开设置弹窗
+                        openSettingsModal();
+                    }
+                });
+            });
+
+            // COD开关切换
+            const codToggle = document.getElementById('cod-toggle');
+            const codContent = document.getElementById('cod-content');
+            if (codToggle) {
+                codToggle.addEventListener('change', function() {
+                    if (this.checked) {
+                        codContent.classList.remove('opacity-50');
+                        codContent.querySelectorAll('input').forEach(input => {
+                            input.disabled = false;
+                        });
+                    } else {
+                        codContent.classList.add('opacity-50');
+                        codContent.querySelectorAll('input').forEach(input => {
+                            input.disabled = true;
+                        });
+                    }
+                });
+            }
+
+            // 计算找零金额
+            const receivedAmount = document.getElementById('received-amount');
+            const changeAmount = document.getElementById('change-amount');
+            
+            if (receivedAmount && changeAmount) {
+                receivedAmount.addEventListener('input', function() {
+                    const totalAmount = parseFloat(document.getElementById('payment-total-amount').textContent) || 0;
+                    const received = parseFloat(this.value) || 0;
+                    const change = received - totalAmount;
+                    changeAmount.value = change >= 0 ? change.toFixed(2) : 0.00;
+                });
+            }
+
+            // 确认揽收按钮 - 打开支付弹窗
+            const confirmCollectionBtn = document.getElementById('confirm-collection-btn');
+            if (confirmCollectionBtn) {
+                confirmCollectionBtn.addEventListener('click', function() {
+                    // 获取当前选中包裹的总金额
+                    if (appData.scannedPackages.length > 0) {
+                        const firstPackage = appData.scannedPackages[0];
+                        document.getElementById('payment-total-amount').textContent = firstPackage.totalAmount.toFixed(2) + ' 泰铢';
+                        document.getElementById('received-amount').value = firstPackage.totalAmount.toFixed(2);
+                        document.getElementById('change-amount').value = '0.00';
+                    }
+                    openPaymentModal();
+                });
+            }
+
+            // 批量揽收按钮
+            const batchCollectBtn = document.getElementById('batch-collect-btn');
+            if (batchCollectBtn) {
+                batchCollectBtn.addEventListener('click', function() {
+                    // 计算批量总金额
+                    const totalAmount = appData.scannedPackages.reduce((sum, pkg) => sum + pkg.totalAmount, 0);
+                    document.getElementById('payment-total-amount').textContent = totalAmount.toFixed(2) + ' 泰铢';
+                    document.getElementById('received-amount').value = totalAmount.toFixed(2);
+                    document.getElementById('change-amount').value = '0.00';
+                    openPaymentModal();
+                });
+            }
+
+            // 关闭详情弹窗
+            const closeModalBtn = document.getElementById('close-modal-btn');
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', function() {
+                    document.getElementById('order-detail-modal').classList.remove('show');
+                });
+            }
+
+            // 关闭支付弹窗
+            const closePaymentBtn = document.getElementById('close-payment-btn');
+            if (closePaymentBtn) {
+                closePaymentBtn.addEventListener('click', function() {
+                    document.getElementById('payment-modal').classList.remove('show');
+                });
+            }
+
+            // 关闭设置弹窗
+            const closeSettingsBtn = document.getElementById('close-settings-btn');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.addEventListener('click', function() {
+                    document.getElementById('settings-modal').classList.remove('show');
+                });
+            }
+
+            // 确认支付按钮
+            const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
+            if (confirmPaymentBtn) {
+                confirmPaymentBtn.addEventListener('click', function() {
+                    // 隐藏支付弹窗
+                    document.getElementById('payment-modal').classList.remove('show');
+                    
+                    // 生成新的揽收记录并添加到历史记录
+                    createNewCollectionRecord();
+                    
+                    // 清空已扫描包裹
+                    appData.scannedPackages = [];
+                    updateBatchList();
+                    hidePackageDetail();
+                    
+                    // 重新渲染历史记录列表
+                    renderHistoryList();
+                    
+                    // 显示成功提示
+                    const successToast = document.getElementById('success-toast');
+                    successToast.classList.add('opacity-100', 'visible');
+                    
+                    // 3秒后隐藏提示
+                    setTimeout(() => {
+                        successToast.classList.remove('opacity-100', 'visible');
+                    }, 3000);
+                });
+            }
+
+            // 点击弹窗外层关闭
+            const modals = document.querySelectorAll('.modal-backdrop');
+            modals.forEach(modal => {
+                modal.addEventListener('click', function() {
+                    this.classList.remove('show');
+                });
+                
+                // 阻止点击弹窗内容区域关闭弹窗
+                const modalContent = modal.querySelector('.modal-content');
+                if (modalContent) {
+                    modalContent.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                    });
+                }
+            });
+
+            // 支付方式选择样式
+            const paymentMethods = document.querySelectorAll('.payment-method');
+            paymentMethods.forEach(method => {
+                const radio = method.querySelector('input');
+                
+                radio.addEventListener('change', function() {
+                    // 重置所有样式
+                    paymentMethods.forEach(m => {
+                        m.classList.remove('border-primary', 'bg-orange-50');
+                    });
+                    
+                    // 设置选中样式
+                    if (this.checked) {
+                        method.classList.add('border-primary', 'bg-orange-50');
+                    }
+                });
+                
+                // 初始化第一个选中项样式
+                if (radio.checked) {
+                    method.classList.add('border-primary', 'bg-orange-50');
+                }
+            });
+
+            // ========== 批量扫描功能 ==========
+            
+            // 运单号输入框回车事件
+            const waybillInput = document.getElementById('waybill-input');
+            if (waybillInput) {
+                waybillInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter' && this.value.trim()) {
+                        addPackageByWaybill(this.value.trim());
+                        this.value = '';
+                    }
+                });
+            }
+            
+            // 扫描区域点击事件
+            const scanArea = document.getElementById('scan-area');
+            if (scanArea) {
+                scanArea.addEventListener('click', function() {
+                    // 随机选择一个模拟包裹进行扫描
+                    const randomIdx = Math.floor(Math.random() * appData.mockPackages.length);
+                    const randomPackage = appData.mockPackages[randomIdx];
+                    addPackageByWaybill(randomPackage.waybill);
+                });
+            }
+            
+            // 清空批量列表
+            const clearBatchBtn = document.getElementById('clear-batch-btn');
+            if (clearBatchBtn) {
+                clearBatchBtn.addEventListener('click', function() {
+                    appData.scannedPackages = [];
+                    updateBatchList();
+                    hidePackageDetail();
+                });
+            }
+            
+            // 根据运单号添加包裹
+            function addPackageByWaybill(waybill) {
+                // 查找模拟数据中的包裹
+                const pkg = appData.mockPackages.find(item => item.waybill === waybill);
+                
+                if (pkg) {
+                    // 检查是否已添加
+                    const isAlreadyAdded = appData.scannedPackages.some(item => item.waybill === waybill);
+                    if (!isAlreadyAdded) {
+                        appData.scannedPackages.push({...pkg}); // 深拷贝
+                        updateBatchList();
+                        
+                        // 显示扫描成功提示
+                        showScanToast(`包裹 ${waybill} 扫描成功！`);
+                        
+                        // 如果是第一个包裹，自动显示详情
+                        if (appData.scannedPackages.length === 1) {
+                            showPackageDetail(pkg);
+                        }
+                    } else {
+                        showScanToast(`包裹 ${waybill} 已扫描过！`, false);
+                    }
+                } else {
+                    showScanToast(`未找到包裹 ${waybill}！`, false);
+                }
+            }
+            
+            // 更新批量列表
+            function updateBatchList() {
+                const batchList = document.getElementById('batch-list');
+                const emptyBatchState = document.getElementById('empty-batch-state');
+                const batchCount = document.getElementById('batch-count');
+                const batchCollectBtn = document.getElementById('batch-collect-btn');
+                
+                // 更新计数
+                if (batchCount) {
+                    batchCount.textContent = `已扫描: ${appData.scannedPackages.length} 件`;
+                }
+                
+                // 更新按钮状态
+                if (batchCollectBtn) {
+                    if (appData.scannedPackages.length > 0) {
+                        batchCollectBtn.disabled = false;
+                        batchCollectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                    } else {
+                        batchCollectBtn.disabled = true;
+                        batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                }
+                
+                // 清空列表
+                while (batchList.firstChild) {
+                    if (batchList.firstChild !== emptyBatchState) {
+                        batchList.removeChild(batchList.firstChild);
+                    } else {
+                        break;
+                    }
+                }
+                
+                // 显示空状态或包裹列表
+                if (appData.scannedPackages.length === 0) {
+                    emptyBatchState.classList.remove('hidden');
+                } else {
+                    emptyBatchState.classList.add('hidden');
+                    
+                    // 添加包裹项
+                    appData.scannedPackages.forEach((pkg, index) => {
+                        const packageItem = document.createElement('div');
+                        packageItem.className = 'flex justify-between items-center p-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 clickable transition-all duration-200';
+                        packageItem.innerHTML = `
+                            <div class="flex items-center flex-1">
+                                <input type="checkbox" checked class="mr-2 package-checkbox" data-index="${index}">
+                                <div class="flex-1">
+                                    <div class="font-medium text-sm">${pkg.waybill}</div>
+                                    <div class="text-xs text-gray-500">${pkg.receiver.name} | ${pkg.receiver.phone}</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1">
+                                ${pkg.cod ? '<span class="px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded">COD</span>' : ''}
+                                <span class="text-xs font-medium">${pkg.totalAmount.toFixed(2)} 泰铢</span>
+                                <button class="text-gray-400 hover:text-danger p-1 package-delete" data-index="${index}">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                        `;
+                        
+                        // 点击包裹项显示详情
+                        packageItem.addEventListener('click', function(e) {
+                            if (!e.target.classList.contains('package-checkbox') && 
+                                !e.target.classList.contains('package-delete') &&
+                                !e.target.classList.contains('fa-times')) {
+                                showPackageDetail(pkg);
+                            }
+                        });
+                        
+                        // 删除包裹
+                        const deleteBtn = packageItem.querySelector('.package-delete');
+                        deleteBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const idx = parseInt(this.dataset.index);
+                            appData.scannedPackages.splice(idx, 1);
+                            updateBatchList();
+                            
+                            // 如果删除的是当前显示的包裹，隐藏详情
+                            if (appData.scannedPackages.length === 0) {
+                                hidePackageDetail();
+                            }
+                        });
+                        
+                        batchList.appendChild(packageItem);
+                    });
+                }
+            }
+            
+            // 显示包裹详情
+            function showPackageDetail(pkg) {
+                const packageDetail = document.getElementById('package-detail');
+                const codSection = document.getElementById('cod-section');
+                const feeSection = document.getElementById('fee-section');
+                const actionButtons = document.getElementById('action-buttons');
+                
+                // 更新详情内容
+                document.getElementById('sender-name').textContent = pkg.sender.name;
+                document.getElementById('sender-phone').textContent = pkg.sender.phone;
+                document.getElementById('receiver-name').textContent = pkg.receiver.name;
+                document.getElementById('receiver-phone').textContent = pkg.receiver.phone;
+                document.getElementById('receiver-address').textContent = pkg.receiver.address;
+                document.getElementById('receiver-zip').textContent = pkg.receiver.zip;
+                
+                // 更新COD开关状态
+                if (codToggle) {
+                    codToggle.checked = pkg.cod;
+                    if (pkg.cod) {
+                        codContent.classList.remove('opacity-50');
+                        codContent.querySelectorAll('input').forEach(input => {
+                            input.disabled = false;
+                        });
+                        // 更新COD金额
+                        codContent.querySelector('input[type="number"]').value = pkg.codAmount.toFixed(2);
+                    } else {
+                        codContent.classList.add('opacity-50');
+                        codContent.querySelectorAll('input').forEach(input => {
+                            input.disabled = true;
+                        });
+                        codContent.querySelector('input[type="number"]').value = '0.00';
+                    }
+                }
+                
+                // 更新总费用显示
+                const feeTotalEl = feeSection.querySelector('.text-primary.text-lg');
+                if (feeTotalEl) {
+                    feeTotalEl.textContent = pkg.totalAmount.toFixed(2) + ' 泰铢';
+                }
+                
+                // 显示所有详情区域
+                packageDetail.classList.remove('hidden');
+                codSection.classList.remove('hidden');
+                feeSection.classList.remove('hidden');
+                actionButtons.classList.remove('hidden');
+            }
+            
+            // 隐藏包裹详情
+            function hidePackageDetail() {
+                const packageDetail = document.getElementById('package-detail');
+                const codSection = document.getElementById('cod-section');
+                const feeSection = document.getElementById('fee-section');
+                const actionButtons = document.getElementById('action-buttons');
+                
+                packageDetail.classList.add('hidden');
+                codSection.classList.add('hidden');
+                feeSection.classList.add('hidden');
+                actionButtons.classList.add('hidden');
+            }
+            
+            // 显示扫描提示
+            function showScanToast(message, isSuccess = true) {
+                const scanToast = document.getElementById('scan-toast');
+                const scanToastText = document.getElementById('scan-toast-text');
+                
+                scanToastText.textContent = message;
+                
+                // 设置提示颜色
+                if (isSuccess) {
+                    scanToast.classList.remove('bg-danger');
+                    scanToast.classList.add('bg-primary');
+                } else {
+                    scanToast.classList.remove('bg-primary');
+                    scanToast.classList.add('bg-danger');
+                }
+                
+                // 显示提示
+                scanToast.classList.add('opacity-100', 'visible');
+                
+                // 2秒后隐藏
+                setTimeout(() => {
+                    scanToast.classList.remove('opacity-100', 'visible');
+                }, 2000);
+            }
+        });
+
+        // 初始化历史记录
+        function initHistoryRecords() {
+            // 初始化3条默认历史记录
+            appData.historyRecords = [
+                {
+                    orderId: 'KEX-2024-0001',
+                    waybill: 'KEX8880001',
+                    sender: { name: '宋先生', phone: '081-XXXXXXX', address: '曼谷隆披尼区素坤逸路123号 10110' },
+                    receiver: { name: '维拉蓬女士', phone: '089-XXXXXXX', address: '曼谷隆披尼区素坤逸路456号 10110' },
+                    cod: true,
+                    codAmount: 2500.00,
+                    totalAmount: 246.10,
+                    status: '已完成',
+                    statusClass: 'px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full',
+                    createTime: '2024/01/12 10:30:45',
+                    paymentTime: '2024/01/12 10:35:20'
+                },
+                {
+                    orderId: 'KEX-2024-0002',
+                    waybill: 'KEX8880002',
+                    sender: { name: '李先生', phone: '082-XXXXXXX', address: '曼谷沙吞区沙吞路45号 10120' },
+                    receiver: { name: '苏查达女士', phone: '087-XXXXXXX', address: '曼谷沙吞区沙吞路78号 10120' },
+                    cod: false,
+                    codAmount: 0.00,
+                    totalAmount: 350.00,
+                    status: '待支付',
+                    statusClass: 'px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full',
+                    createTime: '2024/01/12 09:15:30',
+                    paymentTime: ''
+                },
+                {
+                    orderId: 'KEX-2024-0003',
+                    waybill: 'KEX8880003',
+                    sender: { name: '王女士', phone: '083-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路78号 10900' },
+                    receiver: { name: '阿南先生', phone: '091-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路99号 10900' },
+                    cod: true,
+                    codAmount: 1800.00,
+                    totalAmount: 180.00,
+                    status: '已取消',
+                    statusClass: 'px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full',
+                    createTime: '2024/01/11 14:20:15',
+                    paymentTime: ''
+                }
+            ];
+            
+            // 更新订单ID计数器
+            appData.orderIdCounter = 20240004;
+        }
+
+        // 渲染历史记录列表
+        function renderHistoryList() {
+            const container = document.getElementById('history-list-container');
+            if (!container) return;
+            
+            // 清空容器
+            container.innerHTML = '';
+            
+            // 如果没有记录
+            if (appData.historyRecords.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-400 py-10">
+                        <i class="fa fa-history text-4xl mb-3"></i>
+                        <p>暂无揽收记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 渲染每条记录
+            appData.historyRecords.forEach(record => {
+                const recordEl = document.createElement('div');
+                recordEl.className = 'p-4 border-b border-gray-100 flex justify-between items-center order-item clickable hover:bg-gray-50 transition-all duration-200';
+                recordEl.dataset.id = record.orderId;
+                recordEl.innerHTML = `
+                    <div>
+                        <div class="flex items-center">
+                            <span class="font-medium mr-2">${record.orderId}</span>
+                            <span class="${record.statusClass}">${record.status}</span>
+                        </div>
+                        <div class="flex items-center mt-1 text-sm text-gray-600">
+                            <span>${record.sender.name}</span>
+                            <span class="mx-2">•</span>
+                            <span>${record.sender.phone}</span>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-medium block">${record.totalAmount.toFixed(2)} 泰铢</span>
+                        <span class="text-xs text-gray-500">${record.createTime.split(' ')[0]}</span>
+                    </div>
+                `;
+                
+                // 点击事件 - 打开详情弹窗
+                recordEl.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openOrderDetailModal(record);
+                });
+                
+                container.appendChild(recordEl);
+            });
+        }
+
+        // 打开订单详情弹窗
+        function openOrderDetailModal(record) {
+            const modal = document.getElementById('order-detail-modal');
+            
+            // 更新详情内容
+            document.getElementById('detail-order-id').textContent = record.orderId;
+            document.getElementById('detail-status').textContent = record.status;
+            document.getElementById('detail-status').className = record.statusClass;
+            document.getElementById('detail-date').textContent = record.createTime;
+            document.getElementById('detail-sender-name').textContent = record.sender.name;
+            document.getElementById('detail-sender-phone').textContent = record.sender.phone;
+            document.getElementById('detail-sender-address').textContent = record.sender.address;
+            document.getElementById('detail-receiver-name').textContent = record.receiver.name;
+            document.getElementById('detail-receiver-phone').textContent = record.receiver.phone;
+            document.getElementById('detail-receiver-address').textContent = record.receiver.address;
+            document.getElementById('detail-cod-amount').textContent = record.codAmount.toFixed(2);
+            document.getElementById('detail-total-amount').textContent = record.totalAmount.toFixed(2) + ' 泰铢';
+            document.getElementById('detail-payment-time').textContent = record.paymentTime || '未支付';
+            
+            // 打开弹窗
+            modal.classList.add('show');
+        }
+
+        // 创建新的揽收记录
+        function createNewCollectionRecord() {
+            // 获取当前时间
+            const now = new Date();
+            const createTime = now.toLocaleDateString('zh-CN') + ' ' + now.toTimeString().split(' ')[0].substring(0, 8);
+            const paymentTime = createTime;
+            
+            // 为每个扫描的包裹创建一条记录
+            appData.scannedPackages.forEach(pkg => {
+                const newRecord = {
+                    orderId: `KEX-${appData.orderIdCounter.toString().slice(0,4)}-${appData.orderIdCounter.toString().slice(4).padStart(4, '0')}`,
+                    waybill: pkg.waybill,
+                    sender: pkg.sender,
+                    receiver: pkg.receiver,
+                    cod: pkg.cod,
+                    codAmount: pkg.codAmount,
+                    totalAmount: pkg.totalAmount,
+                    status: '已完成',
+                    statusClass: 'px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full',
+                    createTime: createTime,
+                    paymentTime: paymentTime
+                };
+                
+                // 添加到历史记录开头
+                appData.historyRecords.unshift(newRecord);
+                
+                // 递增订单ID
+                appData.orderIdCounter++;
+            });
+        }
+
+        // 更新导航激活状态
+        function updateNavActive(activeId) {
+            const navButtons = document.querySelectorAll('nav button');
+            navButtons.forEach(b => {
+                b.classList.remove('text-primary');
+                b.classList.add('text-gray-500');
+            });
+            const activeBtn = document.getElementById(activeId);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-500');
+                activeBtn.classList.add('text-primary');
+            }
+        }
+
+        // 打开支付弹窗
+        function openPaymentModal() {
+            const modal = document.getElementById('payment-modal');
+            modal.classList.add('show');
+            
+            // 阻止点击弹窗内部关闭
+            modal.querySelector('.modal-content').addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+        
+        // 打开设置弹窗
+        function openSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.add('show');
+            
+            // 阻止点击弹窗内部关闭
+            modal.querySelector('.modal-content').addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        }
+    </script>
 </body>
 </html>
