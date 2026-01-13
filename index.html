@@ -331,7 +331,7 @@
             </button>
             <button class="flex flex-col items-center justify-center text-gray-500 clickable btn-hover" id="nav-payment">
                 <i class="fa fa-credit-card text-xl mb-1"></i>
-                <span class="text-xs">支付结算</span>
+                <span class="text-xs">今日汇总</span>
             </button>
             <button class="flex flex-col items-center justify-center text-gray-500 clickable btn-hover" id="nav-settings">
                 <i class="fa fa-cog text-xl mb-1"></i>
@@ -443,7 +443,7 @@
         </div>
     </div>
 
-    <!-- 支付结算弹窗 (默认隐藏) -->
+    <!-- 支付结算弹窗 (仅用于揽收确认时的支付，保留原有功能) -->
     <div id="payment-modal" class="modal-backdrop">
         <div class="modal-content">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
@@ -523,7 +523,103 @@
         </div>
     </div>
 
-    <!-- 设置页面弹窗 (新增) -->
+    <!-- 今日揽收汇总弹窗 (替换原独立支付结算页面，核心优化) -->
+    <div id="summary-modal" class="modal-backdrop">
+        <div class="modal-content max-w-lg">
+            <div class="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
+                <h3 class="font-bold text-lg">今日揽收汇总</h3>
+                <button class="text-gray-500 hover:text-gray-800 clickable btn-hover" id="close-summary-btn">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="p-4 space-y-6">
+                <!-- 今日统计概览 -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-primary/10 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-500 mb-1">今日订单数</p>
+                        <p class="text-xl font-bold text-primary" id="summary-order-count">0</p>
+                    </div>
+                    <div class="bg-secondary/10 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-500 mb-1">今日包裹数</p>
+                        <p class="text-xl font-bold text-secondary" id="summary-package-count">0</p>
+                    </div>
+                    <div class="bg-success/10 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-500 mb-1">今日总金额</p>
+                        <p class="text-xl font-bold text-success" id="summary-total-amount">0.00</p>
+                    </div>
+                    <div class="bg-danger/10 rounded-lg p-3 text-center">
+                        <p class="text-xs text-gray-500 mb-1">COD总金额</p>
+                        <p class="text-xl font-bold text-danger" id="summary-cod-amount">0.00</p>
+                    </div>
+                </div>
+
+                <!-- 支付方式分布 -->
+                <div class="border-t border-gray-200 pt-4">
+                    <h4 class="font-medium mb-3">支付方式分布</h4>
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between mb-1">
+                            <div class="flex items-center">
+                                <i class="fa fa-money text-green-600 mr-2"></i>
+                                <span class="text-sm">现金</span>
+                            </div>
+                            <span class="text-xs text-gray-500" id="summary-cash-ratio">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-green-600 h-2 rounded-full" id="summary-cash-bar" style="width: 0%"></div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-1 mt-3">
+                            <div class="flex items-center">
+                                <i class="fa fa-credit-card text-blue-600 mr-2"></i>
+                                <span class="text-sm">银行卡</span>
+                            </div>
+                            <span class="text-xs text-gray-500" id="summary-card-ratio">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-blue-600 h-2 rounded-full" id="summary-card-bar" style="width: 0%"></div>
+                        </div>
+
+                        <div class="flex items-center justify-between mb-1 mt-3">
+                            <div class="flex items-center">
+                                <i class="fa fa-bank text-purple-600 mr-2"></i>
+                                <span class="text-sm">银行转账</span>
+                            </div>
+                            <span class="text-xs text-gray-500" id="summary-transfer-ratio">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="bg-purple-600 h-2 rounded-full" id="summary-transfer-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 今日订单列表 -->
+                <div class="border-t border-gray-200 pt-4">
+                    <div class="flex justify-between items-center mb-3">
+                        <h4 class="font-medium">今日订单列表</h4>
+                        <span class="text-xs text-gray-500" id="summary-list-count">共 0 条</span>
+                    </div>
+                    <div class="max-h-[200px] overflow-y-auto scrollbar-hide space-y-2" id="summary-order-list">
+                        <div class="text-center text-gray-400 py-8">
+                            <i class="fa fa-file-text-o text-3xl mb-2"></i>
+                            <p>暂无今日揽收订单</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 汇总操作按钮 -->
+                <div class="flex space-x-3">
+                    <button class="flex-1 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium clickable btn-hover">
+                        <i class="fa fa-download mr-1"></i> 导出Excel
+                    </button>
+                    <button class="flex-1 py-2 bg-primary text-white rounded-lg text-sm font-medium clickable btn-hover">
+                        <i class="fa fa-print mr-1"></i> 打印汇总单
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置页面弹窗 (保留原有功能) -->
     <div id="settings-modal" class="modal-backdrop">
         <div class="modal-content">
             <div class="p-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white">
@@ -672,7 +768,8 @@
                         cod: 50.00,
                         insurance: 30.00,
                         vat: 16.10
-                    }
+                    },
+                    paymentMethod: 'cash' // 新增：支付方式
                 },
                 {
                     waybill: 'KEX8880002',
@@ -689,7 +786,8 @@
                         cod: 0.00,
                         insurance: 40.00,
                         vat: 21.00
-                    }
+                    },
+                    paymentMethod: 'card' // 新增：支付方式
                 },
                 {
                     waybill: 'KEX8880003',
@@ -706,7 +804,8 @@
                         cod: 30.00,
                         insurance: 10.00,
                         vat: 11.20
-                    }
+                    },
+                    paymentMethod: 'transfer' // 新增：支付方式
                 }
             ],
             // 已扫描的包裹列表
@@ -714,7 +813,19 @@
             // 历史揽收记录（初始化为空，无默认数据）
             historyRecords: [],
             // 订单ID计数器
-            orderIdCounter: 20240001
+            orderIdCounter: 20240001,
+            // 今日汇总数据（新增）
+            todaySummary: {
+                orderCount: 0,
+                packageCount: 0,
+                totalAmount: 0.00,
+                codTotalAmount: 0.00,
+                paymentStats: {
+                    cash: 0,
+                    card: 0,
+                    transfer: 0
+                }
+            }
         };
 
         // 全局变量声明（批量揽收按钮）
@@ -734,6 +845,9 @@
             
             // 渲染历史记录列表（显示"暂无揽收记录"）
             renderHistoryList();
+
+            // 初始化今日汇总数据
+            updateTodaySummary();
 
             // 切换标签
             const scanBtn = document.getElementById('tab-scan-btn');
@@ -779,8 +893,8 @@
                     } else if (this.id === 'nav-list') {
                         historyBtn.click();
                     } else if (this.id === 'nav-payment') {
-                        // 打开支付弹窗
-                        openPaymentModal();
+                        // 打开今日汇总弹窗（替换原支付弹窗）
+                        openSummaryModal();
                     } else if (this.id === 'nav-settings') {
                         // 打开设置弹窗
                         openSettingsModal();
@@ -892,6 +1006,16 @@
                 });
             }
 
+            // 关闭汇总弹窗 - 新增：绑定关闭逻辑
+            const closeSummaryBtn = document.getElementById('close-summary-btn');
+            const summaryModal = document.getElementById('summary-modal');
+            if (closeSummaryBtn && summaryModal) {
+                closeSummaryBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    summaryModal.classList.remove('show');
+                });
+            }
+
             // 确认支付按钮 - 核心修改：仅同步勾选的包裹到历史记录，未勾选的保留在扫描列表
             const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
             if (confirmPaymentBtn && paymentModal) {
@@ -903,6 +1027,13 @@
                     const checkedPackages = getCheckedPackagesList();
                     if (checkedPackages.length <= 0) return;
                     
+                    // 获取选中的支付方式
+                    const selectedPaymentMethod = document.querySelector('input[name="payment-method"]:checked').value;
+                    // 为勾选包裹添加支付方式
+                    checkedPackages.forEach(pkg => {
+                        pkg.paymentMethod = selectedPaymentMethod;
+                    });
+                    
                     // 核心修改2：仅为勾选的包裹生成历史记录
                     createNewCollectionRecord(checkedPackages);
                     
@@ -911,6 +1042,9 @@
                     
                     // 更新批量列表（刷新扫描列表，显示剩余未勾选包裹）
                     updateBatchList();
+                    
+                    // 更新今日汇总数据
+                    updateTodaySummary();
                     
                     // 隐藏包裹详情（如果剩余无包裹）
                     if (appData.scannedPackages.length === 0) {
@@ -1344,7 +1478,7 @@
             if (appData.historyRecords.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-gray-400 py-10">
-                        <i class="fa fa-history text-4xl mb-3"></i>
+                        <i class="fa fa-history text-4xl mb-2"></i>
                         <p>暂无揽收记录</p>
                     </div>
                 `;
@@ -1459,6 +1593,7 @@
                     size: pkg.size || { length: 30, width: 20, height: 10 },
                     type: pkg.type || '包装商品',
                     fees: pkg.fees || { shipping: 0, cod: 0, insurance: 0, vat: 0 },
+                    paymentMethod: pkg.paymentMethod || 'cash', // 新增：支付方式
                     status: '已完成',
                     statusClass: 'px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full',
                     createTime: createTime,
@@ -1504,6 +1639,148 @@
             const modal = document.getElementById('settings-modal');
             if (!modal) return;
             modal.classList.add('show');
+        }
+
+        // 新增：打开今日汇总弹窗
+        function openSummaryModal() {
+            const modal = document.getElementById('summary-modal');
+            if (!modal) return;
+            // 刷新汇总数据
+            updateTodaySummary();
+            // 打开弹窗
+            modal.classList.add('show');
+        }
+
+        // 新增：更新今日汇总数据并渲染到页面
+        function updateTodaySummary() {
+            const today = new Date();
+            const todayDate = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
+            
+            // 初始化汇总数据
+            let orderCount = 0;
+            let packageCount = 0;
+            let totalAmount = 0.00;
+            let codTotalAmount = 0.00;
+            let cashCount = 0;
+            let cardCount = 0;
+            let transferCount = 0;
+            
+            // 筛选今日的记录并统计
+            appData.historyRecords.forEach(record => {
+                const recordDate = record.createTime.split(' ')[0];
+                if (recordDate === todayDate) {
+                    orderCount++;
+                    packageCount++;
+                    totalAmount += record.totalAmount;
+                    codTotalAmount += record.codAmount || 0;
+                    
+                    // 统计支付方式
+                    switch (record.paymentMethod) {
+                        case 'cash':
+                            cashCount++;
+                            break;
+                        case 'card':
+                            cardCount++;
+                            break;
+                        case 'transfer':
+                            transferCount++;
+                            break;
+                        default:
+                            cashCount++;
+                            break;
+                    }
+                }
+            });
+            
+            // 更新全局汇总数据
+            appData.todaySummary = {
+                orderCount,
+                packageCount,
+                totalAmount,
+                codTotalAmount,
+                paymentStats: {
+                    cash: cashCount,
+                    card: cardCount,
+                    transfer: transferCount
+                }
+            };
+            
+            // 计算支付方式占比
+            const totalPayment = cashCount + cardCount + transferCount;
+            const cashRatio = totalPayment > 0 ? Math.round((cashCount / totalPayment) * 100) : 0;
+            const cardRatio = totalPayment > 0 ? Math.round((cardCount / totalPayment) * 100) : 0;
+            const transferRatio = totalPayment > 0 ? Math.round((transferCount / totalPayment) * 100) : 0;
+            
+            // 渲染汇总统计到页面
+            document.getElementById('summary-order-count').textContent = orderCount;
+            document.getElementById('summary-package-count').textContent = packageCount;
+            document.getElementById('summary-total-amount').textContent = totalAmount.toFixed(2) + ' 泰铢';
+            document.getElementById('summary-cod-amount').textContent = codTotalAmount.toFixed(2) + ' 泰铢';
+            
+            // 渲染支付方式占比
+            document.getElementById('summary-cash-ratio').textContent = `${cashRatio}%`;
+            document.getElementById('summary-cash-bar').style.width = `${cashRatio}%`;
+            document.getElementById('summary-card-ratio').textContent = `${cardRatio}%`;
+            document.getElementById('summary-card-bar').style.width = `${cardRatio}%`;
+            document.getElementById('summary-transfer-ratio').textContent = `${transferRatio}%`;
+            document.getElementById('summary-transfer-bar').style.width = `${transferRatio}%`;
+            
+            // 渲染今日订单列表
+            renderSummaryOrderList(todayDate);
+        }
+
+        // 新增：渲染今日汇总订单列表
+        function renderSummaryOrderList(todayDate) {
+            const listContainer = document.getElementById('summary-order-list');
+            const listCountEl = document.getElementById('summary-list-count');
+            
+            if (!listContainer || !listCountEl) return;
+            
+            // 筛选今日订单
+            const todayOrders = appData.historyRecords.filter(record => {
+                return record.createTime.split(' ')[0] === todayDate;
+            });
+            
+            // 更新列表计数
+            listCountEl.textContent = `共 ${todayOrders.length} 条`;
+            
+            // 清空列表
+            listContainer.innerHTML = '';
+            
+            if (todayOrders.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center text-gray-400 py-8">
+                        <i class="fa fa-file-text-o text-3xl mb-2"></i>
+                        <p>暂无今日揽收订单</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 渲染今日订单
+            todayOrders.forEach(order => {
+                const orderEl = document.createElement('div');
+                orderEl.className = 'p-3 border-b border-gray-100 last:border-0 hover:bg-gray-50 clickable transition-all duration-200';
+                orderEl.innerHTML = `
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-sm font-medium">${order.orderId}</span>
+                        <span class="text-sm font-bold text-primary">${order.totalAmount.toFixed(2)} 泰铢</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>${order.waybill}</span>
+                        <span>${order.createTime.split(' ')[1]}</span>
+                    </div>
+                `;
+                
+                // 点击查看订单详情
+                orderEl.addEventListener('click', function() {
+                    openOrderDetailModal(order);
+                    // 关闭汇总弹窗
+                    document.getElementById('summary-modal').classList.remove('show');
+                });
+                
+                listContainer.appendChild(orderEl);
+            });
         }
     </script>
 </body>
