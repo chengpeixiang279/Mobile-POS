@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -691,11 +690,17 @@
             orderIdCounter: 20240001
         };
 
+        // 全局变量声明（批量揽收按钮）
+        let batchCollectBtn;
+
         // 设置当前日期
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
             document.getElementById('current-date').textContent = today.toLocaleDateString('zh-CN', options);
+
+            // 初始化批量揽收按钮
+            batchCollectBtn = document.getElementById('batch-collect-btn');
 
             // 初始化历史记录
             initHistoryRecords();
@@ -759,7 +764,14 @@
             // COD开关切换
             const codToggle = document.getElementById('cod-toggle');
             const codContent = document.getElementById('cod-content');
-            if (codToggle) {
+            if (codToggle && codContent) {
+                // 初始化COD状态
+                codToggle.checked = true;
+                codContent.classList.remove('opacity-50');
+                codContent.querySelectorAll('input').forEach(input => {
+                    input.disabled = false;
+                });
+
                 codToggle.addEventListener('change', function() {
                     if (this.checked) {
                         codContent.classList.remove('opacity-50');
@@ -775,13 +787,16 @@
                 });
             }
 
-            // 计算找零金额
+            // 计算找零金额 - 修复 parseFloat 提取金额问题
             const receivedAmount = document.getElementById('received-amount');
             const changeAmount = document.getElementById('change-amount');
+            const paymentTotalAmount = document.getElementById('payment-total-amount');
             
-            if (receivedAmount && changeAmount) {
+            if (receivedAmount && changeAmount && paymentTotalAmount) {
                 receivedAmount.addEventListener('input', function() {
-                    const totalAmount = parseFloat(document.getElementById('payment-total-amount').textContent) || 0;
+                    // 提取纯数字金额（去除"泰铢"文字）
+                    const totalText = paymentTotalAmount.textContent.replace(/[^0-9.]/g, '');
+                    const totalAmount = parseFloat(totalText) || 0;
                     const received = parseFloat(this.value) || 0;
                     const change = received - totalAmount;
                     changeAmount.value = change >= 0 ? change.toFixed(2) : 0.00;
@@ -798,15 +813,19 @@
                         document.getElementById('payment-total-amount').textContent = firstPackage.totalAmount.toFixed(2) + ' 泰铢';
                         document.getElementById('received-amount').value = firstPackage.totalAmount.toFixed(2);
                         document.getElementById('change-amount').value = '0.00';
+                        openPaymentModal();
                     }
-                    openPaymentModal();
                 });
             }
 
-            // 批量揽收按钮
-            const batchCollectBtn = document.getElementById('batch-collect-btn');
+            // 批量揽收按钮 - 修复禁用状态样式
             if (batchCollectBtn) {
+                // 初始化禁用状态
+                batchCollectBtn.disabled = true;
+                batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+
                 batchCollectBtn.addEventListener('click', function() {
+                    if (appData.scannedPackages.length === 0) return;
                     // 计算批量总金额
                     const totalAmount = appData.scannedPackages.reduce((sum, pkg) => sum + pkg.totalAmount, 0);
                     document.getElementById('payment-total-amount').textContent = totalAmount.toFixed(2) + ' 泰铢';
@@ -816,36 +835,42 @@
                 });
             }
 
-            // 关闭详情弹窗
+            // 关闭详情弹窗 - 直接绑定关闭逻辑，阻止事件冒泡
             const closeModalBtn = document.getElementById('close-modal-btn');
-            if (closeModalBtn) {
-                closeModalBtn.addEventListener('click', function() {
-                    document.getElementById('order-detail-modal').classList.remove('show');
+            const orderDetailModal = document.getElementById('order-detail-modal');
+            if (closeModalBtn && orderDetailModal) {
+                closeModalBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    orderDetailModal.classList.remove('show');
                 });
             }
 
-            // 关闭支付弹窗
+            // 关闭支付弹窗 - 直接绑定关闭逻辑，阻止事件冒泡
             const closePaymentBtn = document.getElementById('close-payment-btn');
-            if (closePaymentBtn) {
-                closePaymentBtn.addEventListener('click', function() {
-                    document.getElementById('payment-modal').classList.remove('show');
+            const paymentModal = document.getElementById('payment-modal');
+            if (closePaymentBtn && paymentModal) {
+                closePaymentBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    paymentModal.classList.remove('show');
                 });
             }
 
-            // 关闭设置弹窗
+            // 关闭设置弹窗 - 直接绑定关闭逻辑，阻止事件冒泡
             const closeSettingsBtn = document.getElementById('close-settings-btn');
-            if (closeSettingsBtn) {
-                closeSettingsBtn.addEventListener('click', function() {
-                    document.getElementById('settings-modal').classList.remove('show');
+            const settingsModal = document.getElementById('settings-modal');
+            if (closeSettingsBtn && settingsModal) {
+                closeSettingsBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    settingsModal.classList.remove('show');
                 });
             }
 
             // 确认支付按钮
             const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
-            if (confirmPaymentBtn) {
+            if (confirmPaymentBtn && paymentModal) {
                 confirmPaymentBtn.addEventListener('click', function() {
                     // 隐藏支付弹窗
-                    document.getElementById('payment-modal').classList.remove('show');
+                    paymentModal.classList.remove('show');
                     
                     // 生成新的揽收记录并添加到历史记录
                     createNewCollectionRecord();
@@ -860,16 +885,18 @@
                     
                     // 显示成功提示
                     const successToast = document.getElementById('success-toast');
-                    successToast.classList.add('opacity-100', 'visible');
-                    
-                    // 3秒后隐藏提示
-                    setTimeout(() => {
-                        successToast.classList.remove('opacity-100', 'visible');
-                    }, 3000);
+                    if (successToast) {
+                        successToast.classList.add('opacity-100', 'visible');
+                        
+                        // 3秒后隐藏提示
+                        setTimeout(() => {
+                            successToast.classList.remove('opacity-100', 'visible');
+                        }, 3000);
+                    }
                 });
             }
 
-            // 点击弹窗外层关闭
+            // 点击弹窗外层关闭 - 优化事件冒泡阻止
             const modals = document.querySelectorAll('.modal-backdrop');
             modals.forEach(modal => {
                 modal.addEventListener('click', function() {
@@ -885,10 +912,11 @@
                 }
             });
 
-            // 支付方式选择样式
+            // 支付方式选择样式 - 修复初始化和选中逻辑
             const paymentMethods = document.querySelectorAll('.payment-method');
             paymentMethods.forEach(method => {
                 const radio = method.querySelector('input');
+                if (!radio) return;
                 
                 radio.addEventListener('change', function() {
                     // 重置所有样式
@@ -908,7 +936,7 @@
                 }
             });
 
-            // ========== 批量扫描功能 ==========
+            // ========== 批量扫描功能 - 修复核心逻辑 ==========
             
             // 运单号输入框回车事件
             const waybillInput = document.getElementById('waybill-input');
@@ -921,18 +949,28 @@
                 });
             }
             
-            // 扫描区域点击事件
+            // 扫描区域点击事件 - 防重复点击，单次仅添加一个包裹
             const scanArea = document.getElementById('scan-area');
             if (scanArea) {
+                // 增加防重复点击标记（避免短时间内多次触发）
+                let isScanning = false;
                 scanArea.addEventListener('click', function() {
-                    // 随机选择一个模拟包裹进行扫描
+                    if (isScanning) return; // 正在扫描中，拒绝重复触发
+                    isScanning = true;
+                    
+                    // 严格保证单次点击仅添加1个包裹
                     const randomIdx = Math.floor(Math.random() * appData.mockPackages.length);
                     const randomPackage = appData.mockPackages[randomIdx];
                     addPackageByWaybill(randomPackage.waybill);
+                    
+                    // 释放扫描标记（添加短暂延迟，防止快速连续点击）
+                    setTimeout(() => {
+                        isScanning = false;
+                    }, 500);
                 });
             }
             
-            // 清空批量列表
+            // 清空批量列表 - 修复清空后状态
             const clearBatchBtn = document.getElementById('clear-batch-btn');
             if (clearBatchBtn) {
                 clearBatchBtn.addEventListener('click', function() {
@@ -941,208 +979,210 @@
                     hidePackageDetail();
                 });
             }
-            
-            // 根据运单号添加包裹
-            function addPackageByWaybill(waybill) {
-                // 查找模拟数据中的包裹
-                const pkg = appData.mockPackages.find(item => item.waybill === waybill);
-                
-                if (pkg) {
-                    // 检查是否已添加
-                    const isAlreadyAdded = appData.scannedPackages.some(item => item.waybill === waybill);
-                    if (!isAlreadyAdded) {
-                        appData.scannedPackages.push({...pkg}); // 深拷贝
-                        updateBatchList();
-                        
-                        // 显示扫描成功提示
-                        showScanToast(`包裹 ${waybill} 扫描成功！`);
-                        
-                        // 如果是第一个包裹，自动显示详情
-                        if (appData.scannedPackages.length === 1) {
-                            showPackageDetail(pkg);
-                        }
-                    } else {
-                        showScanToast(`包裹 ${waybill} 已扫描过！`, false);
-                    }
-                } else {
-                    showScanToast(`未找到包裹 ${waybill}！`, false);
-                }
-            }
-            
-            // 更新批量列表
-            function updateBatchList() {
-                const batchList = document.getElementById('batch-list');
-                const emptyBatchState = document.getElementById('empty-batch-state');
-                const batchCount = document.getElementById('batch-count');
-                const batchCollectBtn = document.getElementById('batch-collect-btn');
-                
-                // 更新计数
-                if (batchCount) {
-                    batchCount.textContent = `已扫描: ${appData.scannedPackages.length} 件`;
-                }
-                
-                // 更新按钮状态
-                if (batchCollectBtn) {
-                    if (appData.scannedPackages.length > 0) {
-                        batchCollectBtn.disabled = false;
-                        batchCollectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    } else {
-                        batchCollectBtn.disabled = true;
-                        batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    }
-                }
-                
-                // 清空列表
-                while (batchList.firstChild) {
-                    if (batchList.firstChild !== emptyBatchState) {
-                        batchList.removeChild(batchList.firstChild);
-                    } else {
-                        break;
-                    }
-                }
-                
-                // 显示空状态或包裹列表
-                if (appData.scannedPackages.length === 0) {
-                    emptyBatchState.classList.remove('hidden');
-                } else {
-                    emptyBatchState.classList.add('hidden');
-                    
-                    // 添加包裹项
-                    appData.scannedPackages.forEach((pkg, index) => {
-                        const packageItem = document.createElement('div');
-                        packageItem.className = 'flex justify-between items-center p-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 clickable transition-all duration-200';
-                        packageItem.innerHTML = `
-                            <div class="flex items-center flex-1">
-                                <input type="checkbox" checked class="mr-2 package-checkbox" data-index="${index}">
-                                <div class="flex-1">
-                                    <div class="font-medium text-sm">${pkg.waybill}</div>
-                                    <div class="text-xs text-gray-500">${pkg.receiver.name} | ${pkg.receiver.phone}</div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-1">
-                                ${pkg.cod ? '<span class="px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded">COD</span>' : ''}
-                                <span class="text-xs font-medium">${pkg.totalAmount.toFixed(2)} 泰铢</span>
-                                <button class="text-gray-400 hover:text-danger p-1 package-delete" data-index="${index}">
-                                    <i class="fa fa-times"></i>
-                                </button>
-                            </div>
-                        `;
-                        
-                        // 点击包裹项显示详情
-                        packageItem.addEventListener('click', function(e) {
-                            if (!e.target.classList.contains('package-checkbox') && 
-                                !e.target.classList.contains('package-delete') &&
-                                !e.target.classList.contains('fa-times')) {
-                                showPackageDetail(pkg);
-                            }
-                        });
-                        
-                        // 删除包裹
-                        const deleteBtn = packageItem.querySelector('.package-delete');
-                        deleteBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const idx = parseInt(this.dataset.index);
-                            appData.scannedPackages.splice(idx, 1);
-                            updateBatchList();
-                            
-                            // 如果删除的是当前显示的包裹，隐藏详情
-                            if (appData.scannedPackages.length === 0) {
-                                hidePackageDetail();
-                            }
-                        });
-                        
-                        batchList.appendChild(packageItem);
-                    });
-                }
-            }
-            
-            // 显示包裹详情
-            function showPackageDetail(pkg) {
-                const packageDetail = document.getElementById('package-detail');
-                const codSection = document.getElementById('cod-section');
-                const feeSection = document.getElementById('fee-section');
-                const actionButtons = document.getElementById('action-buttons');
-                
-                // 更新详情内容
-                document.getElementById('sender-name').textContent = pkg.sender.name;
-                document.getElementById('sender-phone').textContent = pkg.sender.phone;
-                document.getElementById('receiver-name').textContent = pkg.receiver.name;
-                document.getElementById('receiver-phone').textContent = pkg.receiver.phone;
-                document.getElementById('receiver-address').textContent = pkg.receiver.address;
-                document.getElementById('receiver-zip').textContent = pkg.receiver.zip;
-                
-                // 更新COD开关状态
-                if (codToggle) {
-                    codToggle.checked = pkg.cod;
-                    if (pkg.cod) {
-                        codContent.classList.remove('opacity-50');
-                        codContent.querySelectorAll('input').forEach(input => {
-                            input.disabled = false;
-                        });
-                        // 更新COD金额
-                        codContent.querySelector('input[type="number"]').value = pkg.codAmount.toFixed(2);
-                    } else {
-                        codContent.classList.add('opacity-50');
-                        codContent.querySelectorAll('input').forEach(input => {
-                            input.disabled = true;
-                        });
-                        codContent.querySelector('input[type="number"]').value = '0.00';
-                    }
-                }
-                
-                // 更新总费用显示
-                const feeTotalEl = feeSection.querySelector('.text-primary.text-lg');
-                if (feeTotalEl) {
-                    feeTotalEl.textContent = pkg.totalAmount.toFixed(2) + ' 泰铢';
-                }
-                
-                // 显示所有详情区域
-                packageDetail.classList.remove('hidden');
-                codSection.classList.remove('hidden');
-                feeSection.classList.remove('hidden');
-                actionButtons.classList.remove('hidden');
-            }
-            
-            // 隐藏包裹详情
-            function hidePackageDetail() {
-                const packageDetail = document.getElementById('package-detail');
-                const codSection = document.getElementById('cod-section');
-                const feeSection = document.getElementById('fee-section');
-                const actionButtons = document.getElementById('action-buttons');
-                
-                packageDetail.classList.add('hidden');
-                codSection.classList.add('hidden');
-                feeSection.classList.add('hidden');
-                actionButtons.classList.add('hidden');
-            }
-            
-            // 显示扫描提示
-            function showScanToast(message, isSuccess = true) {
-                const scanToast = document.getElementById('scan-toast');
-                const scanToastText = document.getElementById('scan-toast-text');
-                
-                scanToastText.textContent = message;
-                
-                // 设置提示颜色
-                if (isSuccess) {
-                    scanToast.classList.remove('bg-danger');
-                    scanToast.classList.add('bg-primary');
-                } else {
-                    scanToast.classList.remove('bg-primary');
-                    scanToast.classList.add('bg-danger');
-                }
-                
-                // 显示提示
-                scanToast.classList.add('opacity-100', 'visible');
-                
-                // 2秒后隐藏
-                setTimeout(() => {
-                    scanToast.classList.remove('opacity-100', 'visible');
-                }, 2000);
-            }
         });
 
-        // 初始化历史记录
+        // 根据运单号添加包裹 - 增强重复判断，杜绝重复添加
+        function addPackageByWaybill(waybill) {
+            // 查找模拟数据中的包裹
+            const pkg = appData.mockPackages.find(item => item.waybill === waybill);
+            
+            if (pkg) {
+                // 严格判断：已扫描列表中是否存在相同运单号的包裹
+                const isAlreadyAdded = appData.scannedPackages.some(item => item.waybill === waybill);
+                if (!isAlreadyAdded) {
+                    // 深拷贝包裹数据，避免修改原模拟数据
+                    const newPkg = JSON.parse(JSON.stringify(pkg));
+                    appData.scannedPackages.push(newPkg);
+                    updateBatchList();
+                    
+                    // 显示扫描成功提示
+                    showScanToast(`包裹 ${waybill} 扫描成功！`);
+                    
+                    // 如果是第一个包裹，自动显示详情
+                    if (appData.scannedPackages.length === 1) {
+                        showPackageDetail(newPkg);
+                    }
+                } else {
+                    showScanToast(`包裹 ${waybill} 已扫描过！`, false);
+                }
+            } else {
+                showScanToast(`未找到包裹 ${waybill}！`, false);
+            }
+        }
+
+        // 更新批量列表 - 彻底去重，确保无重复包裹显示
+        function updateBatchList() {
+            const batchList = document.getElementById('batch-list');
+            const emptyBatchState = document.getElementById('empty-batch-state');
+            const batchCount = document.getElementById('batch-count');
+            
+            if (!batchList || !emptyBatchState || !batchCount || !batchCollectBtn) return;
+            
+            // 更新计数
+            batchCount.textContent = `已扫描: ${appData.scannedPackages.length} 件`;
+            
+            // 更新批量揽收按钮状态
+            if (appData.scannedPackages.length > 0) {
+                batchCollectBtn.disabled = false;
+                batchCollectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                batchCollectBtn.disabled = true;
+                batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+            
+            // 清空列表（彻底清空，重新渲染）
+            batchList.innerHTML = '';
+            // 重新添加空状态元素
+            batchList.appendChild(emptyBatchState);
+            
+            // 显示空状态或包裹列表
+            if (appData.scannedPackages.length === 0) {
+                emptyBatchState.classList.remove('hidden');
+            } else {
+                emptyBatchState.classList.add('hidden');
+                
+                // 去重处理（兜底保障，确保无重复渲染）
+                const uniquePackages = Array.from(new Set(appData.scannedPackages.map(p => p.waybill)))
+                    .map(waybill => appData.scannedPackages.find(p => p.waybill === waybill));
+                
+                // 添加包裹项（仅渲染唯一包裹）
+                uniquePackages.forEach((pkg) => {
+                    const packageItem = document.createElement('div');
+                    packageItem.className = 'flex justify-between items-center p-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 clickable transition-all duration-200';
+                    packageItem.innerHTML = `
+                        <div class="flex items-center flex-1">
+                            <input type="checkbox" checked class="mr-2 package-checkbox" data-waybill="${pkg.waybill}">
+                            <div class="flex-1">
+                                <div class="font-medium text-sm">${pkg.waybill}</div>
+                                <div class="text-xs text-gray-500">${pkg.receiver.name} | ${pkg.receiver.phone}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            ${pkg.cod ? '<span class="px-1.5 py-0.5 bg-primary/10 text-primary text-xs rounded">COD</span>' : ''}
+                            <span class="text-xs font-medium">${pkg.totalAmount.toFixed(2)} 泰铢</span>
+                            <button class="text-gray-400 hover:text-danger p-1 package-delete" data-waybill="${pkg.waybill}">
+                                <i class="fa fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    
+                    // 点击包裹项显示详情
+                    packageItem.addEventListener('click', function(e) {
+                        if (!e.target.classList.contains('package-checkbox') && 
+                            !e.target.classList.contains('package-delete') &&
+                            !e.target.classList.contains('fa-times')) {
+                            showPackageDetail(pkg);
+                        }
+                    });
+                    
+                    // 删除包裹（按运单号删除，更精准）
+                    const deleteBtn = packageItem.querySelector('.package-delete');
+                    deleteBtn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const waybill = this.dataset.waybill;
+                        appData.scannedPackages = appData.scannedPackages.filter(item => item.waybill !== waybill);
+                        updateBatchList();
+                        
+                        // 如果删除后无包裹，隐藏详情
+                        if (appData.scannedPackages.length === 0) {
+                            hidePackageDetail();
+                        }
+                    });
+                    
+                    batchList.appendChild(packageItem);
+                });
+            }
+        }
+
+        // 显示包裹详情 - 修复DOM元素获取和状态更新
+        function showPackageDetail(pkg) {
+            const packageDetail = document.getElementById('package-detail');
+            const codSection = document.getElementById('cod-section');
+            const feeSection = document.getElementById('fee-section');
+            const actionButtons = document.getElementById('action-buttons');
+            const codToggle = document.getElementById('cod-toggle');
+            const codContent = document.getElementById('cod-content');
+            const feeTotalEl = feeSection ? feeSection.querySelector('.text-primary.text-lg') : null;
+            
+            if (!packageDetail || !codSection || !feeSection || !actionButtons) return;
+            
+            // 更新详情内容
+            document.getElementById('sender-name').textContent = pkg.sender.name || '';
+            document.getElementById('sender-phone').textContent = pkg.sender.phone || '';
+            document.getElementById('receiver-name').textContent = pkg.receiver.name || '';
+            document.getElementById('receiver-phone').textContent = pkg.receiver.phone || '';
+            document.getElementById('receiver-address').textContent = pkg.receiver.address || '';
+            document.getElementById('receiver-zip').textContent = pkg.receiver.zip || '';
+            
+            // 更新COD开关状态
+            if (codToggle && codContent) {
+                codToggle.checked = pkg.cod || false;
+                if (pkg.cod) {
+                    codContent.classList.remove('opacity-50');
+                    codContent.querySelectorAll('input').forEach(input => {
+                        input.disabled = false;
+                    });
+                    // 更新COD金额
+                    const codInput = codContent.querySelector('input[type="number"]');
+                    if (codInput) codInput.value = pkg.codAmount.toFixed(2) || '0.00';
+                } else {
+                    codContent.classList.add('opacity-50');
+                    codContent.querySelectorAll('input').forEach(input => {
+                        input.disabled = true;
+                    });
+                    const codInput = codContent.querySelector('input[type="number"]');
+                    if (codInput) codInput.value = '0.00';
+                }
+            }
+            
+            // 更新总费用显示
+            if (feeTotalEl) {
+                feeTotalEl.textContent = pkg.totalAmount.toFixed(2) + ' 泰铢' || '0.00 泰铢';
+            }
+            
+            // 显示所有详情区域
+            packageDetail.classList.remove('hidden');
+            codSection.classList.remove('hidden');
+            feeSection.classList.remove('hidden');
+            actionButtons.classList.remove('hidden');
+        }
+        
+        // 隐藏包裹详情 - 统一隐藏所有相关区域
+        function hidePackageDetail() {
+            const packageDetail = document.getElementById('package-detail');
+            const codSection = document.getElementById('cod-section');
+            const feeSection = document.getElementById('fee-section');
+            const actionButtons = document.getElementById('action-buttons');
+            
+            if (packageDetail) packageDetail.classList.add('hidden');
+            if (codSection) codSection.classList.add('hidden');
+            if (feeSection) feeSection.classList.add('hidden');
+            if (actionButtons) actionButtons.classList.add('hidden');
+        }
+        
+        // 显示扫描提示 - 修复提示框样式切换
+        function showScanToast(message, isSuccess = true) {
+            const scanToast = document.getElementById('scan-toast');
+            const scanToastText = document.getElementById('scan-toast-text');
+            
+            if (!scanToast || !scanToastText) return;
+            
+            scanToastText.textContent = message || '操作完成！';
+            
+            // 设置提示颜色
+            scanToast.classList.remove('bg-primary', 'bg-danger');
+            scanToast.classList.add(isSuccess ? 'bg-primary' : 'bg-danger');
+            
+            // 显示提示
+            scanToast.classList.add('opacity-100', 'visible');
+            
+            // 2秒后隐藏
+            setTimeout(() => {
+                scanToast.classList.remove('opacity-100', 'visible');
+            }, 2000);
+        }
+
+        // 初始化历史记录 - 完善默认数据
         function initHistoryRecords() {
             // 初始化3条默认历史记录
             appData.historyRecords = [
@@ -1191,7 +1231,7 @@
             appData.orderIdCounter = 20240004;
         }
 
-        // 渲染历史记录列表
+        // 渲染历史记录列表 - 修复DOM渲染和点击事件
         function renderHistoryList() {
             const container = document.getElementById('history-list-container');
             if (!container) return;
@@ -1234,8 +1274,7 @@
                 `;
                 
                 // 点击事件 - 打开详情弹窗
-                recordEl.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                recordEl.addEventListener('click', function() {
                     openOrderDetailModal(record);
                 });
                 
@@ -1243,61 +1282,87 @@
             });
         }
 
-        // 打开订单详情弹窗
+        // 打开订单详情弹窗 - 修复数据填充
         function openOrderDetailModal(record) {
             const modal = document.getElementById('order-detail-modal');
+            if (!modal) return;
             
             // 更新详情内容
-            document.getElementById('detail-order-id').textContent = record.orderId;
-            document.getElementById('detail-status').textContent = record.status;
-            document.getElementById('detail-status').className = record.statusClass;
-            document.getElementById('detail-date').textContent = record.createTime;
-            document.getElementById('detail-sender-name').textContent = record.sender.name;
-            document.getElementById('detail-sender-phone').textContent = record.sender.phone;
-            document.getElementById('detail-sender-address').textContent = record.sender.address;
-            document.getElementById('detail-receiver-name').textContent = record.receiver.name;
-            document.getElementById('detail-receiver-phone').textContent = record.receiver.phone;
-            document.getElementById('detail-receiver-address').textContent = record.receiver.address;
-            document.getElementById('detail-cod-amount').textContent = record.codAmount.toFixed(2);
-            document.getElementById('detail-total-amount').textContent = record.totalAmount.toFixed(2) + ' 泰铢';
+            document.getElementById('detail-order-id').textContent = record.orderId || '';
+            document.getElementById('detail-status').textContent = record.status || '';
+            document.getElementById('detail-status').className = record.statusClass || 'px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full';
+            document.getElementById('detail-date').textContent = record.createTime || '';
+            document.getElementById('detail-sender-name').textContent = record.sender.name || '';
+            document.getElementById('detail-sender-phone').textContent = record.sender.phone || '';
+            document.getElementById('detail-sender-address').textContent = record.sender.address || '';
+            document.getElementById('detail-receiver-name').textContent = record.receiver.name || '';
+            document.getElementById('detail-receiver-phone').textContent = record.receiver.phone || '';
+            document.getElementById('detail-receiver-address').textContent = record.receiver.address || '';
+            document.getElementById('detail-cod-amount').textContent = record.codAmount.toFixed(2) || '0.00';
+            document.getElementById('detail-total-amount').textContent = record.totalAmount.toFixed(2) + ' 泰铢' || '0.00 泰铢';
             document.getElementById('detail-payment-time').textContent = record.paymentTime || '未支付';
             
             // 打开弹窗
             modal.classList.add('show');
         }
 
-        // 创建新的揽收记录
+        // 创建新的揽收记录 - 完善数据结构，确保同步到历史记录
         function createNewCollectionRecord() {
-            // 获取当前时间
+            // 校验扫描包裹列表是否为空
+            if (appData.scannedPackages.length === 0) {
+                console.warn('无扫描的包裹，无法生成历史记录');
+                return;
+            }
+            
+            // 获取当前时间（统一格式）
             const now = new Date();
-            const createTime = now.toLocaleDateString('zh-CN') + ' ' + now.toTimeString().split(' ')[0].substring(0, 8);
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const createTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
             const paymentTime = createTime;
             
-            // 为每个扫描的包裹创建一条记录
+            // 为每个扫描的包裹生成完整历史记录
             appData.scannedPackages.forEach(pkg => {
                 const newRecord = {
-                    orderId: `KEX-${appData.orderIdCounter.toString().slice(0,4)}-${appData.orderIdCounter.toString().slice(4).padStart(4, '0')}`,
+                    orderId: `KEX-${year}-${String(appData.orderIdCounter).padStart(4, '0')}`,
                     waybill: pkg.waybill,
-                    sender: pkg.sender,
-                    receiver: pkg.receiver,
-                    cod: pkg.cod,
-                    codAmount: pkg.codAmount,
-                    totalAmount: pkg.totalAmount,
+                    sender: {
+                        name: pkg.sender.name || '未知寄件人',
+                        phone: pkg.sender.phone || '未知电话',
+                        address: pkg.sender.address || '未知地址'
+                    },
+                    receiver: {
+                        name: pkg.receiver.name || '未知收件人',
+                        phone: pkg.receiver.phone || '未知电话',
+                        address: pkg.receiver.address || '未知地址'
+                    },
+                    cod: pkg.cod || false,
+                    codAmount: pkg.codAmount || 0.00,
+                    totalAmount: pkg.totalAmount || 0.00,
                     status: '已完成',
                     statusClass: 'px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full',
                     createTime: createTime,
                     paymentTime: paymentTime
                 };
                 
-                // 添加到历史记录开头
+                // 添加到历史记录开头（最新记录置顶）
                 appData.historyRecords.unshift(newRecord);
                 
-                // 递增订单ID
+                // 递增订单ID计数器
                 appData.orderIdCounter++;
             });
+            
+            // 限制历史记录数量（避免数据过载）
+            if (appData.historyRecords.length > 100) {
+                appData.historyRecords = appData.historyRecords.slice(0, 100);
+            }
         }
 
-        // 更新导航激活状态
+        // 更新导航激活状态 - 修复样式切换
         function updateNavActive(activeId) {
             const navButtons = document.querySelectorAll('nav button');
             navButtons.forEach(b => {
@@ -1311,26 +1376,18 @@
             }
         }
 
-        // 打开支付弹窗
+        // 打开支付弹窗 - 修复弹窗显示
         function openPaymentModal() {
             const modal = document.getElementById('payment-modal');
+            if (!modal) return;
             modal.classList.add('show');
-            
-            // 阻止点击弹窗内部关闭
-            modal.querySelector('.modal-content').addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
         }
         
-        // 打开设置弹窗
+        // 打开设置弹窗 - 修复弹窗显示
         function openSettingsModal() {
             const modal = document.getElementById('settings-modal');
+            if (!modal) return;
             modal.classList.add('show');
-            
-            // 阻止点击弹窗内部关闭
-            modal.querySelector('.modal-content').addEventListener('click', function(e) {
-                e.stopPropagation();
-            });
         }
     </script>
 </body>
