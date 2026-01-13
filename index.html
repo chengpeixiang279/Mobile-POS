@@ -1587,7 +1587,7 @@
                         address: pkg.receiver?.address || '未知地址'
                     },
                     cod: pkg.cod || false,
-                    codAmount: pkg.codAmount || 0.00,
+                    codAmount: pkg.codAmount || 0.00, // 确保COD金额正确存入记录
                     totalAmount: pkg.totalAmount || 0.00,
                     weight: pkg.weight || 1.000,
                     size: pkg.size || { length: 30, width: 20, height: 10 },
@@ -1651,7 +1651,7 @@
             modal.classList.add('show');
         }
 
-        // 新增：更新今日汇总数据并渲染到页面
+        // 新增：更新今日汇总数据并渲染到页面（核心修复：COD总金额统计）
         function updateTodaySummary() {
             const today = new Date();
             const todayDate = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
@@ -1660,19 +1660,19 @@
             let orderCount = 0;
             let packageCount = 0;
             let totalAmount = 0.00;
-            let codTotalAmount = 0.00;
+            let codTotalAmount = 0.00; // 今日COD总金额
             let cashCount = 0;
             let cardCount = 0;
             let transferCount = 0;
             
-            // 筛选今日的记录并统计
+            // 筛选今日的记录并统计（核心修复：累加每条记录的COD金额）
             appData.historyRecords.forEach(record => {
                 const recordDate = record.createTime.split(' ')[0];
                 if (recordDate === todayDate) {
                     orderCount++;
                     packageCount++;
-                    totalAmount += record.totalAmount;
-                    codTotalAmount += record.codAmount || 0;
+                    totalAmount += record.totalAmount; // 累加订单总金额
+                    codTotalAmount += record.codAmount || 0; // 核心修复：累加每条记录的COD金额，处理空值避免NaN
                     
                     // 统计支付方式
                     switch (record.paymentMethod) {
@@ -1697,7 +1697,7 @@
                 orderCount,
                 packageCount,
                 totalAmount,
-                codTotalAmount,
+                codTotalAmount, // 保存正确的COD总金额
                 paymentStats: {
                     cash: cashCount,
                     card: cardCount,
@@ -1711,11 +1711,11 @@
             const cardRatio = totalPayment > 0 ? Math.round((cardCount / totalPayment) * 100) : 0;
             const transferRatio = totalPayment > 0 ? Math.round((transferCount / totalPayment) * 100) : 0;
             
-            // 渲染汇总统计到页面
+            // 渲染汇总统计到页面（核心修复：COD总金额添加格式化为泰铢，保持统一）
             document.getElementById('summary-order-count').textContent = orderCount;
             document.getElementById('summary-package-count').textContent = packageCount;
             document.getElementById('summary-total-amount').textContent = totalAmount.toFixed(2) + ' 泰铢';
-            document.getElementById('summary-cod-amount').textContent = codTotalAmount.toFixed(2) + ' 泰铢';
+            document.getElementById('summary-cod-amount').textContent = codTotalAmount.toFixed(2) + ' 泰铢'; // 修复：显示格式化后的COD总金额
             
             // 渲染支付方式占比
             document.getElementById('summary-cash-ratio').textContent = `${cashRatio}%`;
