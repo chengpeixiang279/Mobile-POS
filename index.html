@@ -127,7 +127,7 @@
                 <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-primary transition-all duration-300 clickable btn-hover mb-4" id="scan-area">
                     <i class="fa fa-qrcode text-5xl text-gray-300 mb-3"></i>
                     <p class="text-gray-500 mb-4">将码放入扫描区域 或 手动输入运单号</p>
-                    <input type="text" placeholder="输入运单号并按回车添加" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm transition-all duration-200" id="waybill-input">
+                    <input type="text" placeholder="输入运单号并按回车添加（KEX8880001/0002/0003）" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm transition-all duration-200" id="waybill-input">
                 </div>
                 
                 <!-- 已扫描包裹列表 -->
@@ -161,26 +161,26 @@
                 <div class="mb-5">
                     <h4 class="text-sm font-medium text-gray-500 mb-2">寄件人</h4>
                     <div class="flex justify-between items-center mb-1">
-                        <span class="font-medium" id="sender-name">宋先生</span>
+                        <span class="font-medium" id="sender-name">未知寄件人</span>
                         <button class="text-gray-400 hover:text-primary clickable btn-hover">
                             <i class="fa fa-eye-slash"></i>
                         </button>
                     </div>
-                    <p class="text-gray-600 text-sm" id="sender-phone">081-XXXXXXX</p>
+                    <p class="text-gray-600 text-sm" id="sender-phone">未知电话</p>
                 </div>
 
                 <!-- 收件人 -->
                 <div class="mb-5">
                     <h4 class="text-sm font-medium text-gray-500 mb-2">收件人</h4>
                     <div class="flex justify-between items-center mb-1">
-                        <span class="font-medium" id="receiver-name">维拉蓬女士</span>
+                        <span class="font-medium" id="receiver-name">未知收件人</span>
                         <button class="text-gray-400 hover:text-primary clickable btn-hover">
                             <i class="fa fa-eye-slash"></i>
                         </button>
                     </div>
-                    <p class="text-gray-600 text-sm" id="receiver-phone">089-XXXXXXX</p>
-                    <p class="text-gray-600 text-sm mt-1" id="receiver-address">曼谷隆披尼区素坤逸路123号 10110</p>
-                    <p class="text-gray-600 text-sm" id="receiver-zip">邮政编码: 10110</p>
+                    <p class="text-gray-600 text-sm" id="receiver-phone">未知电话</p>
+                    <p class="text-gray-600 text-sm mt-1" id="receiver-address">未知地址</p>
+                    <p class="text-gray-600 text-sm" id="receiver-zip">邮政编码: 未知</p>
                 </div>
 
                 <!-- 包裹信息 -->
@@ -189,25 +189,25 @@
                     <div class="grid grid-cols-3 gap-3 mb-3">
                         <div>
                             <label class="text-xs text-gray-500 block mb-1">重量 (Kg)</label>
-                            <input type="number" value="1.250" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                            <input type="number" value="1.250" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="package-weight">
                         </div>
                         <div>
                             <label class="text-xs text-gray-500 block mb-1">宽度 (cm)</label>
-                            <input type="number" value="30" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                            <input type="number" value="30" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="package-width">
                         </div>
                         <div>
                             <label class="text-xs text-gray-500 block mb-1">高度 (cm)</label>
-                            <input type="number" value="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                            <input type="number" value="20" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="package-height">
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-xs text-gray-500 block mb-1">长度 (cm)</label>
-                            <input type="number" value="40" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                            <input type="number" value="40" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-center text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="package-length">
                         </div>
                         <div>
                             <label class="text-xs text-gray-500 block mb-1">包裹类型</label>
-                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                            <select class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="package-type">
                                 <option>包装商品</option>
                                 <option>文件</option>
                                 <option>小件商品</option>
@@ -230,11 +230,11 @@
                 <div class="grid grid-cols-2 gap-3" id="cod-content">
                     <div>
                         <label class="text-xs text-gray-500 block mb-1">COD 金额</label>
-                        <input type="number" value="2500.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-right text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                        <input type="number" value="2500.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-right text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="cod-amount">
                     </div>
                     <div>
                         <label class="text-xs text-gray-500 block mb-1">税率 (%)</label>
-                        <input type="number" value="7.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-right text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200">
+                        <input type="number" value="7.00" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-right text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all duration-200" id="cod-tax">
                     </div>
                 </div>
             </div>
@@ -245,24 +245,24 @@
                 <div class="space-y-2 mb-4">
                     <div class="flex justify-between">
                         <span class="text-gray-600">运费</span>
-                        <span>150.00 泰铢</span>
+                        <span id="fee-shipping">150.00 泰铢</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">COD 费用</span>
-                        <span>50.00 泰铢</span>
+                        <span id="fee-cod">50.00 泰铢</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">保险费</span>
-                        <span>30.00 泰铢</span>
+                        <span id="fee-insurance">30.00 泰铢</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-600">增值税 VAT (7%)</span>
-                        <span>16.10 泰铢</span>
+                        <span id="fee-vat">16.10 泰铢</span>
                     </div>
                 </div>
                 <div class="border-t border-gray-200 pt-3 flex justify-between font-bold">
                     <span>总计</span>
-                    <span class="text-primary text-lg">246.10 泰铢</span>
+                    <span class="text-primary text-lg" id="fee-total">246.10 泰铢</span>
                 </div>
             </div>
 
@@ -312,7 +312,7 @@
                     <h3 class="font-medium">最近揽收记录</h3>
                 </div>
                 <div class="max-h-[300px] overflow-y-auto scrollbar-hide" id="history-list-container">
-                    <!-- 历史记录将动态生成 -->
+                    <!-- 历史记录将动态生成，初始化无默认数据 -->
                 </div>
             </div>
         </div>
@@ -384,9 +384,9 @@
                 <div class="border-t border-gray-200 pt-3 mt-3">
                     <h4 class="font-medium mb-2">包裹信息</h4>
                     <div class="grid grid-cols-2 gap-2 text-sm">
-                        <div><span class="text-gray-500">重量：</span>1.250 Kg</div>
-                        <div><span class="text-gray-500">尺寸：</span>40×30×20 cm</div>
-                        <div><span class="text-gray-500">类型：</span>包装商品</div>
+                        <div><span class="text-gray-500">重量：</span><span id="detail-package-weight">1.250</span> Kg</div>
+                        <div><span class="text-gray-500">尺寸：</span><span id="detail-package-size">40×30×20</span> cm</div>
+                        <div><span class="text-gray-500">类型：</span><span id="detail-package-type">包装商品</span></div>
                         <div><span class="text-gray-500">COD：</span><span id="detail-cod-amount">2500.00</span> 泰铢</div>
                     </div>
                 </div>
@@ -396,19 +396,19 @@
                     <div class="text-sm space-y-1">
                         <div class="flex justify-between">
                             <span class="text-gray-500">运费：</span>
-                            <span>150.00 泰铢</span>
+                            <span id="detail-fee-shipping">150.00</span> 泰铢
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">COD 费用：</span>
-                            <span>50.00 泰铢</span>
+                            <span id="detail-fee-cod">50.00</span> 泰铢
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">保险费：</span>
-                            <span>30.00 泰铢</span>
+                            <span id="detail-fee-insurance">30.00</span> 泰铢
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-500">增值税 VAT (7%)：</span>
-                            <span>16.10 泰铢</span>
+                            <span id="detail-fee-vat">16.10</span> 泰铢
                         </div>
                         <div class="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold">
                             <span>总计：</span>
@@ -655,7 +655,7 @@
     <script>
         // 全局数据存储
         let appData = {
-            // 模拟包裹数据
+            // 模拟包裹数据（每条数据包含完整详情，用于同步渲染）
             mockPackages: [
                 {
                     waybill: 'KEX8880001',
@@ -663,7 +663,16 @@
                     receiver: { name: '维拉蓬女士', phone: '089-XXXXXXX', address: '曼谷隆披尼区素坤逸路456号 10110', zip: '邮政编码: 10110' },
                     cod: true,
                     codAmount: 2500.00,
-                    totalAmount: 246.10
+                    totalAmount: 246.10,
+                    weight: 1.250,
+                    size: { length: 40, width: 30, height: 20 },
+                    type: '包装商品',
+                    fees: {
+                        shipping: 150.00,
+                        cod: 50.00,
+                        insurance: 30.00,
+                        vat: 16.10
+                    }
                 },
                 {
                     waybill: 'KEX8880002',
@@ -671,7 +680,16 @@
                     receiver: { name: '苏查达女士', phone: '087-XXXXXXX', address: '曼谷沙吞区沙吞路78号 10120', zip: '邮政编码: 10120' },
                     cod: false,
                     codAmount: 0.00,
-                    totalAmount: 350.00
+                    totalAmount: 350.00,
+                    weight: 2.500,
+                    size: { length: 60, width: 40, height: 30 },
+                    type: '大件商品',
+                    fees: {
+                        shipping: 280.00,
+                        cod: 0.00,
+                        insurance: 40.00,
+                        vat: 21.00
+                    }
                 },
                 {
                     waybill: 'KEX8880003',
@@ -679,12 +697,21 @@
                     receiver: { name: '阿南先生', phone: '091-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路99号 10900', zip: '邮政编码: 10900' },
                     cod: true,
                     codAmount: 1800.00,
-                    totalAmount: 180.00
+                    totalAmount: 180.00,
+                    weight: 0.800,
+                    size: { length: 25, width: 20, height: 10 },
+                    type: '文件',
+                    fees: {
+                        shipping: 120.00,
+                        cod: 30.00,
+                        insurance: 10.00,
+                        vat: 11.20
+                    }
                 }
             ],
             // 已扫描的包裹列表
             scannedPackages: [],
-            // 历史揽收记录
+            // 历史揽收记录（初始化为空，无默认数据）
             historyRecords: [],
             // 订单ID计数器
             orderIdCounter: 20240001
@@ -702,10 +729,10 @@
             // 初始化批量揽收按钮
             batchCollectBtn = document.getElementById('batch-collect-btn');
 
-            // 初始化历史记录（重置默认记录时间为当前时间，解决初始时间不同步）
+            // 初始化历史记录（无默认订单，仅初始化计数器）
             initHistoryRecords();
             
-            // 渲染历史记录列表
+            // 渲染历史记录列表（显示"暂无揽收记录"）
             renderHistoryList();
 
             // 切换标签
@@ -765,9 +792,7 @@
             const codToggle = document.getElementById('cod-toggle');
             const codContent = document.getElementById('cod-content');
             if (codToggle && codContent) {
-                // 初始化COD状态
-                codToggle.checked = true;
-                codContent.classList.remove('opacity-50');
+                // 初始化COD状态将在showPackageDetail中动态设置
                 codContent.querySelectorAll('input').forEach(input => {
                     input.disabled = false;
                 });
@@ -818,16 +843,18 @@
                 });
             }
 
-            // 批量揽收按钮 - 修复禁用状态样式
+            // 批量揽收按钮 - 修复禁用状态样式，修改为使用勾选包裹总金额
             if (batchCollectBtn) {
                 // 初始化禁用状态
                 batchCollectBtn.disabled = true;
                 batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
                 batchCollectBtn.addEventListener('click', function() {
-                    if (appData.scannedPackages.length === 0) return;
-                    // 计算批量总金额
-                    const totalAmount = appData.scannedPackages.reduce((sum, pkg) => sum + pkg.totalAmount, 0);
+                    // 获取勾选包裹的总金额（替换原有全部包裹金额计算）
+                    const totalAmount = getCheckedPackagesTotalAmount();
+                    if (totalAmount <= 0) return;
+                    
+                    // 填充支付弹窗金额
                     document.getElementById('payment-total-amount').textContent = totalAmount.toFixed(2) + ' 泰铢';
                     document.getElementById('received-amount').value = totalAmount.toFixed(2);
                     document.getElementById('change-amount').value = '0.00';
@@ -936,7 +963,7 @@
                 }
             });
 
-            // ========== 批量扫描功能 - 修复核心逻辑 ==========
+            // ========== 批量扫描功能 - 核心修复：确保新增包裹实时同步详情 ==========
             
             // 运单号输入框回车事件
             const waybillInput = document.getElementById('waybill-input');
@@ -949,7 +976,7 @@
                 });
             }
             
-            // 扫描区域点击事件 - 防重复点击，单次仅添加一个包裹
+            // 扫描区域点击事件 - 防重复点击，单次仅添加一个包裹，且实时显示详情
             const scanArea = document.getElementById('scan-area');
             if (scanArea) {
                 // 增加防重复点击标记（避免短时间内多次触发）
@@ -977,11 +1004,13 @@
                     appData.scannedPackages = [];
                     updateBatchList();
                     hidePackageDetail();
+                    // 强制更新批量揽收按钮状态
+                    updateBatchCollectBtnStatus();
                 });
             }
         });
 
-        // 根据运单号添加包裹 - 增强重复判断，杜绝重复添加
+        // 根据运单号添加包裹 - 增强重复判断，杜绝重复添加，添加后实时显示详情
         function addPackageByWaybill(waybill) {
             // 查找模拟数据中的包裹
             const pkg = appData.mockPackages.find(item => item.waybill === waybill);
@@ -998,11 +1027,12 @@
                     // 显示扫描成功提示
                     showScanToast(`包裹 ${waybill} 扫描成功！`);
                     
-                    // 如果是第一个包裹，自动显示详情
-                    if (appData.scannedPackages.length === 1) {
-                        showPackageDetail(newPkg);
-                    }
+                    // 关键修改：添加包裹后立即显示对应详情（无论是否是第一个包裹）
+                    showPackageDetail(newPkg);
                 } else {
+                    // 即使包裹已存在，点击扫描也显示该包裹的详情
+                    const existingPkg = appData.scannedPackages.find(item => item.waybill === waybill);
+                    showPackageDetail(existingPkg);
                     showScanToast(`包裹 ${waybill} 已扫描过！`, false);
                 }
             } else {
@@ -1010,7 +1040,7 @@
             }
         }
 
-        // 更新批量列表 - 彻底去重，确保无重复包裹显示
+        // 更新批量列表 - 彻底去重，确保无重复包裹显示，点击包裹项同步详情，新增勾选状态跟踪
         function updateBatchList() {
             const batchList = document.getElementById('batch-list');
             const emptyBatchState = document.getElementById('empty-batch-state');
@@ -1018,17 +1048,8 @@
             
             if (!batchList || !emptyBatchState || !batchCount || !batchCollectBtn) return;
             
-            // 更新计数
+            // 更新计数（已扫描总数）
             batchCount.textContent = `已扫描: ${appData.scannedPackages.length} 件`;
-            
-            // 更新批量揽收按钮状态
-            if (appData.scannedPackages.length > 0) {
-                batchCollectBtn.disabled = false;
-                batchCollectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            } else {
-                batchCollectBtn.disabled = true;
-                batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            }
             
             // 清空列表（彻底清空，重新渲染）
             batchList.innerHTML = '';
@@ -1038,6 +1059,9 @@
             // 显示空状态或包裹列表
             if (appData.scannedPackages.length === 0) {
                 emptyBatchState.classList.remove('hidden');
+                // 无包裹时禁用批量揽收按钮
+                batchCollectBtn.disabled = true;
+                batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
             } else {
                 emptyBatchState.classList.add('hidden');
                 
@@ -1049,6 +1073,7 @@
                 uniquePackages.forEach((pkg) => {
                     const packageItem = document.createElement('div');
                     packageItem.className = 'flex justify-between items-center p-2 border-b border-gray-100 last:border-0 hover:bg-gray-50 clickable transition-all duration-200';
+                    // 为包裹添加默认勾选状态（可修改为持久化存储勾选状态）
                     packageItem.innerHTML = `
                         <div class="flex items-center flex-1">
                             <input type="checkbox" checked class="mr-2 package-checkbox" data-waybill="${pkg.waybill}">
@@ -1066,7 +1091,7 @@
                         </div>
                     `;
                     
-                    // 点击包裹项显示详情
+                    // 关键修改：点击包裹项立即显示对应详情
                     packageItem.addEventListener('click', function(e) {
                         if (!e.target.classList.contains('package-checkbox') && 
                             !e.target.classList.contains('package-delete') &&
@@ -1086,61 +1111,136 @@
                         // 如果删除后无包裹，隐藏详情
                         if (appData.scannedPackages.length === 0) {
                             hidePackageDetail();
+                        } else {
+                            // 删除后显示剩余第一个包裹的详情
+                            showPackageDetail(appData.scannedPackages[0]);
                         }
+                    });
+                    
+                    // 新增：复选框变更事件，实时更新批量揽收按钮状态和计算勾选金额
+                    const checkbox = packageItem.querySelector('.package-checkbox');
+                    checkbox.addEventListener('change', function() {
+                        updateBatchCollectBtnStatus(); // 更新按钮禁用状态
                     });
                     
                     batchList.appendChild(packageItem);
                 });
+                
+                // 初始化批量揽收按钮状态
+                updateBatchCollectBtnStatus();
             }
         }
 
-        // 显示包裹详情 - 修复DOM元素获取和状态更新
+        // 新增：计算所有勾选包裹的总金额
+        function getCheckedPackagesTotalAmount() {
+            const checkboxes = document.querySelectorAll('.package-checkbox:checked');
+            let totalAmount = 0;
+            
+            checkboxes.forEach(checkbox => {
+                const waybill = checkbox.dataset.waybill;
+                const pkg = appData.scannedPackages.find(item => item.waybill === waybill);
+                if (pkg) {
+                    totalAmount += pkg.totalAmount;
+                }
+            });
+            
+            return totalAmount;
+        }
+
+        // 新增：更新批量揽收按钮的禁用状态（根据是否有勾选包裹）
+        function updateBatchCollectBtnStatus() {
+            const checkedCount = document.querySelectorAll('.package-checkbox:checked').length;
+            
+            if (checkedCount > 0) {
+                batchCollectBtn.disabled = false;
+                batchCollectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            } else {
+                batchCollectBtn.disabled = true;
+                batchCollectBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        // 核心修改：完善showPackageDetail函数，确保所有详情字段与传入包裹数据完全同步
         function showPackageDetail(pkg) {
+            // 获取所有需要更新的DOM元素
             const packageDetail = document.getElementById('package-detail');
             const codSection = document.getElementById('cod-section');
             const feeSection = document.getElementById('fee-section');
             const actionButtons = document.getElementById('action-buttons');
             const codToggle = document.getElementById('cod-toggle');
             const codContent = document.getElementById('cod-content');
-            const feeTotalEl = feeSection ? feeSection.querySelector('.text-primary.text-lg') : null;
+            const codAmountInput = document.getElementById('cod-amount');
             
+            // 包裹详情字段
+            const senderName = document.getElementById('sender-name');
+            const senderPhone = document.getElementById('sender-phone');
+            const receiverName = document.getElementById('receiver-name');
+            const receiverPhone = document.getElementById('receiver-phone');
+            const receiverAddress = document.getElementById('receiver-address');
+            const receiverZip = document.getElementById('receiver-zip');
+            
+            // 包裹规格字段
+            const packageWeight = document.getElementById('package-weight');
+            const packageWidth = document.getElementById('package-width');
+            const packageHeight = document.getElementById('package-height');
+            const packageLength = document.getElementById('package-length');
+            const packageType = document.getElementById('package-type');
+            
+            // 费用明细字段
+            const feeShipping = document.getElementById('fee-shipping');
+            const feeCod = document.getElementById('fee-cod');
+            const feeInsurance = document.getElementById('fee-insurance');
+            const feeVat = document.getElementById('fee-vat');
+            const feeTotal = document.getElementById('fee-total');
+            
+            // 校验必要元素是否存在，防止报错
             if (!packageDetail || !codSection || !feeSection || !actionButtons) return;
+            if (!pkg) {
+                hidePackageDetail();
+                return;
+            }
             
-            // 更新详情内容（完整同步扫描包裹的所有信息）
-            document.getElementById('sender-name').textContent = pkg.sender.name || '';
-            document.getElementById('sender-phone').textContent = pkg.sender.phone || '';
-            document.getElementById('receiver-name').textContent = pkg.receiver.name || '';
-            document.getElementById('receiver-phone').textContent = pkg.receiver.phone || '';
-            document.getElementById('receiver-address').textContent = pkg.receiver.address || '';
-            document.getElementById('receiver-zip').textContent = pkg.receiver.zip || '';
+            // 1. 更新寄件人/收件人基础信息
+            senderName.textContent = pkg.sender?.name || '未知寄件人';
+            senderPhone.textContent = pkg.sender?.phone || '未知电话';
+            receiverName.textContent = pkg.receiver?.name || '未知收件人';
+            receiverPhone.textContent = pkg.receiver?.phone || '未知电话';
+            receiverAddress.textContent = pkg.receiver?.address || '未知地址';
+            receiverZip.textContent = pkg.receiver?.zip || '邮政编码: 未知';
             
-            // 更新COD开关状态
-            if (codToggle && codContent) {
+            // 2. 更新包裹规格信息
+            packageWeight.value = pkg.weight || 1.000;
+            packageLength.value = pkg.size?.length || 30;
+            packageWidth.value = pkg.size?.width || 20;
+            packageHeight.value = pkg.size?.height || 10;
+            packageType.value = pkg.type || '包装商品';
+            
+            // 3. 更新COD信息
+            if (codToggle && codContent && codAmountInput) {
                 codToggle.checked = pkg.cod || false;
+                codAmountInput.value = (pkg.codAmount || 0).toFixed(2);
+                
                 if (pkg.cod) {
                     codContent.classList.remove('opacity-50');
                     codContent.querySelectorAll('input').forEach(input => {
                         input.disabled = false;
                     });
-                    // 更新COD金额
-                    const codInput = codContent.querySelector('input[type="number"]');
-                    if (codInput) codInput.value = pkg.codAmount.toFixed(2) || '0.00';
                 } else {
                     codContent.classList.add('opacity-50');
                     codContent.querySelectorAll('input').forEach(input => {
                         input.disabled = true;
                     });
-                    const codInput = codContent.querySelector('input[type="number"]');
-                    if (codInput) codInput.value = '0.00';
                 }
             }
             
-            // 更新总费用显示
-            if (feeTotalEl) {
-                feeTotalEl.textContent = pkg.totalAmount.toFixed(2) + ' 泰铢' || '0.00 泰铢';
-            }
+            // 4. 更新费用明细
+            feeShipping.textContent = (pkg.fees?.shipping || 0).toFixed(2) + ' 泰铢';
+            feeCod.textContent = (pkg.fees?.cod || 0).toFixed(2) + ' 泰铢';
+            feeInsurance.textContent = (pkg.fees?.insurance || 0).toFixed(2) + ' 泰铢';
+            feeVat.textContent = (pkg.fees?.vat || 0).toFixed(2) + ' 泰铢';
+            feeTotal.textContent = (pkg.totalAmount || 0).toFixed(2) + ' 泰铢';
             
-            // 显示所有详情区域
+            // 5. 显示所有详情区域
             packageDetail.classList.remove('hidden');
             codSection.classList.remove('hidden');
             feeSection.classList.remove('hidden');
@@ -1182,63 +1282,12 @@
             }, 2000);
         }
 
-        // 初始化历史记录 - 核心修复1：默认记录时间改为当前时间
+        // 初始化历史记录 - 核心修改：不添加任何默认订单，保持空记录状态
         function initHistoryRecords() {
-            // 获取当前时间（统一格式，解决时间不同步问题）
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            const currentTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-            const yesterdayTime = `${year}/${month}/${String(day - 1).padStart(2, '0')} ${hours}:${minutes}:${seconds}`;
+            // 清空历史记录数组，不设置任何默认订单
+            appData.historyRecords = [];
             
-            // 初始化3条默认历史记录（时间改为当前/昨日，贴近实际场景）
-            appData.historyRecords = [
-                {
-                    orderId: 'KEX-2024-0001',
-                    waybill: 'KEX8880001',
-                    sender: { name: '宋先生', phone: '081-XXXXXXX', address: '曼谷隆披尼区素坤逸路123号 10110' },
-                    receiver: { name: '维拉蓬女士', phone: '089-XXXXXXX', address: '曼谷隆披尼区素坤逸路456号 10110' },
-                    cod: true,
-                    codAmount: 2500.00,
-                    totalAmount: 246.10,
-                    status: '已完成',
-                    statusClass: 'px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full',
-                    createTime: currentTime, // 核心修改：使用当前时间
-                    paymentTime: currentTime
-                },
-                {
-                    orderId: 'KEX-2024-0002',
-                    waybill: 'KEX8880002',
-                    sender: { name: '李先生', phone: '082-XXXXXXX', address: '曼谷沙吞区沙吞路45号 10120' },
-                    receiver: { name: '苏查达女士', phone: '087-XXXXXXX', address: '曼谷沙吞区沙吞路78号 10120' },
-                    cod: false,
-                    codAmount: 0.00,
-                    totalAmount: 350.00,
-                    status: '待支付',
-                    statusClass: 'px-2 py-0.5 bg-yellow-100 text-yellow-800 text-xs rounded-full',
-                    createTime: currentTime, // 核心修改：使用当前时间
-                    paymentTime: ''
-                },
-                {
-                    orderId: 'KEX-2024-0003',
-                    waybill: 'KEX8880003',
-                    sender: { name: '王女士', phone: '083-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路78号 10900' },
-                    receiver: { name: '阿南先生', phone: '091-XXXXXXX', address: '曼谷乍都乍区拍凤裕庭路99号 10900' },
-                    cod: true,
-                    codAmount: 1800.00,
-                    totalAmount: 180.00,
-                    status: '已取消',
-                    statusClass: 'px-2 py-0.5 bg-red-100 text-red-800 text-xs rounded-full',
-                    createTime: yesterdayTime, // 核心修改：使用昨日时间（区分历史记录）
-                    paymentTime: ''
-                }
-            ];
-            
-            // 更新订单ID计数器
+            // 仅保留订单ID计数器初始化（不影响后续新增记录）
             appData.orderIdCounter = 20240004;
         }
 
@@ -1250,7 +1299,7 @@
             // 清空容器（避免数据叠加）
             container.innerHTML = '';
             
-            // 如果没有记录
+            // 如果没有记录，显示空状态提示
             if (appData.historyRecords.length === 0) {
                 container.innerHTML = `
                     <div class="text-center text-gray-400 py-10">
@@ -1275,12 +1324,12 @@
                         <div class="flex items-center mt-1 text-sm text-gray-600">
                             <span>${record.sender.name}</span>
                             <span class="mx-2">•</span>
-                            <span>${record.createTime.split(' ')[0]}</span> <!-- 显示当前日期，解决时间不同步 -->
+                            <span>${record.createTime.split(' ')[0]}</span>
                         </div>
                     </div>
                     <div class="text-right">
                         <span class="font-medium block">${record.totalAmount.toFixed(2)} 泰铢</span>
-                        <span class="text-xs text-gray-500">${record.waybill}</span> <!-- 显示运单号，确认数据同步 -->
+                        <span class="text-xs text-gray-500">${record.waybill}</span>
                     </div>
                 `;
                 
@@ -1296,28 +1345,39 @@
         // 打开订单详情弹窗 - 修复数据填充
         function openOrderDetailModal(record) {
             const modal = document.getElementById('order-detail-modal');
-            if (!modal) return;
+            if (!modal || !record) return;
             
             // 更新详情内容（完整同步记录数据）
             document.getElementById('detail-order-id').textContent = record.orderId || '';
             document.getElementById('detail-status').textContent = record.status || '';
             document.getElementById('detail-status').className = record.statusClass || 'px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded-full';
             document.getElementById('detail-date').textContent = record.createTime || '';
-            document.getElementById('detail-sender-name').textContent = record.sender.name || '';
-            document.getElementById('detail-sender-phone').textContent = record.sender.phone || '';
-            document.getElementById('detail-sender-address').textContent = record.sender.address || '';
-            document.getElementById('detail-receiver-name').textContent = record.receiver.name || '';
-            document.getElementById('detail-receiver-phone').textContent = record.receiver.phone || '';
-            document.getElementById('detail-receiver-address').textContent = record.receiver.address || '';
-            document.getElementById('detail-cod-amount').textContent = record.codAmount.toFixed(2) || '0.00';
-            document.getElementById('detail-total-amount').textContent = record.totalAmount.toFixed(2) + ' 泰铢' || '0.00 泰铢';
+            document.getElementById('detail-sender-name').textContent = record.sender?.name || '';
+            document.getElementById('detail-sender-phone').textContent = record.sender?.phone || '';
+            document.getElementById('detail-sender-address').textContent = record.sender?.address || '';
+            document.getElementById('detail-receiver-name').textContent = record.receiver?.name || '';
+            document.getElementById('detail-receiver-phone').textContent = record.receiver?.phone || '';
+            document.getElementById('detail-receiver-address').textContent = record.receiver?.address || '';
+            document.getElementById('detail-cod-amount').textContent = (record.codAmount || 0).toFixed(2);
+            document.getElementById('detail-total-amount').textContent = (record.totalAmount || 0).toFixed(2) + ' 泰铢';
             document.getElementById('detail-payment-time').textContent = record.paymentTime || '未支付';
+            
+            // 更新包裹规格详情
+            document.getElementById('detail-package-weight').textContent = record.weight || 1.000;
+            document.getElementById('detail-package-size').textContent = `${record.size?.length || 30}×${record.size?.width || 20}×${record.size?.height || 10}`;
+            document.getElementById('detail-package-type').textContent = record.type || '包装商品';
+            
+            // 更新费用明细
+            document.getElementById('detail-fee-shipping').textContent = (record.fees?.shipping || 0).toFixed(2);
+            document.getElementById('detail-fee-cod').textContent = (record.fees?.cod || 0).toFixed(2);
+            document.getElementById('detail-fee-insurance').textContent = (record.fees?.insurance || 0).toFixed(2);
+            document.getElementById('detail-fee-vat').textContent = (record.fees?.vat || 0).toFixed(2);
             
             // 打开弹窗
             modal.classList.add('show');
         }
 
-        // 创建新的揽收记录 - 核心修复2：完整同步扫描包裹的所有信息到历史记录
+        // 创建新的揽收记录 - 核心修复：完整同步扫描包裹的所有信息到历史记录
         function createNewCollectionRecord() {
             // 校验扫描包裹列表是否为空
             if (appData.scannedPackages.length === 0) {
@@ -1336,31 +1396,35 @@
             const createTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
             const paymentTime = createTime;
             
-            // 为每个扫描的包裹生成完整历史记录（完整携带扫描数据，解决数据不同步）
+            // 为每个扫描的包裹生成完整历史记录（完整携带扫描数据）
             appData.scannedPackages.forEach(pkg => {
                 const newRecord = {
                     orderId: `KEX-${year}-${String(appData.orderIdCounter).padStart(4, '0')}`,
-                    waybill: pkg.waybill, // 同步运单号
-                    sender: { // 完整同步寄件人信息
-                        name: pkg.sender.name || '未知寄件人',
-                        phone: pkg.sender.phone || '未知电话',
-                        address: pkg.sender.address || '未知地址'
+                    waybill: pkg.waybill,
+                    sender: {
+                        name: pkg.sender?.name || '未知寄件人',
+                        phone: pkg.sender?.phone || '未知电话',
+                        address: pkg.sender?.address || '未知地址'
                     },
-                    receiver: { // 完整同步收件人信息
-                        name: pkg.receiver.name || '未知收件人',
-                        phone: pkg.receiver.phone || '未知电话',
-                        address: pkg.receiver.address || '未知地址'
+                    receiver: {
+                        name: pkg.receiver?.name || '未知收件人',
+                        phone: pkg.receiver?.phone || '未知电话',
+                        address: pkg.receiver?.address || '未知地址'
                     },
-                    cod: pkg.cod || false, // 同步COD状态
-                    codAmount: pkg.codAmount || 0.00, // 同步COD金额
-                    totalAmount: pkg.totalAmount || 0.00, // 同步总金额
+                    cod: pkg.cod || false,
+                    codAmount: pkg.codAmount || 0.00,
+                    totalAmount: pkg.totalAmount || 0.00,
+                    weight: pkg.weight || 1.000,
+                    size: pkg.size || { length: 30, width: 20, height: 10 },
+                    type: pkg.type || '包装商品',
+                    fees: pkg.fees || { shipping: 0, cod: 0, insurance: 0, vat: 0 },
                     status: '已完成',
                     statusClass: 'px-2 py-0.5 bg-green-100 text-green-800 text-xs rounded-full',
-                    createTime: createTime, // 同步当前时间（解决时间不同步）
+                    createTime: createTime,
                     paymentTime: paymentTime
                 };
                 
-                // 添加到历史记录开头（最新记录置顶，确保优先显示）
+                // 添加到历史记录开头（最新记录置顶）
                 appData.historyRecords.unshift(newRecord);
                 
                 // 递增订单ID计数器
