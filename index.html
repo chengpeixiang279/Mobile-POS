@@ -892,22 +892,35 @@
                 });
             }
 
-            // 确认支付按钮 - 核心修复：确保扫描数据完整同步到历史记录
+            // 确认支付按钮 - 核心修改：仅同步勾选的包裹到历史记录，未勾选的保留在扫描列表
             const confirmPaymentBtn = document.getElementById('confirm-payment-btn');
             if (confirmPaymentBtn && paymentModal) {
                 confirmPaymentBtn.addEventListener('click', function() {
                     // 隐藏支付弹窗
                     paymentModal.classList.remove('show');
                     
-                    // 生成新的揽收记录并添加到历史记录（完整携带扫描包裹的所有信息）
-                    createNewCollectionRecord();
+                    // 核心修改1：获取所有勾选的包裹（仅处理这些包裹）
+                    const checkedPackages = getCheckedPackagesList();
+                    if (checkedPackages.length <= 0) return;
                     
-                    // 清空已扫描包裹
-                    appData.scannedPackages = [];
+                    // 核心修改2：仅为勾选的包裹生成历史记录
+                    createNewCollectionRecord(checkedPackages);
+                    
+                    // 核心修改3：从扫描列表中移除已勾选支付的包裹，未勾选的保留
+                    removeCheckedPackagesFromScannedList();
+                    
+                    // 更新批量列表（刷新扫描列表，显示剩余未勾选包裹）
                     updateBatchList();
-                    hidePackageDetail();
                     
-                    // 强制重新渲染历史记录列表（确保新记录实时显示，解决数据不同步）
+                    // 隐藏包裹详情（如果剩余无包裹）
+                    if (appData.scannedPackages.length === 0) {
+                        hidePackageDetail();
+                    } else {
+                        // 显示剩余第一个包裹的详情
+                        showPackageDetail(appData.scannedPackages[0]);
+                    }
+                    
+                    // 强制重新渲染历史记录列表（确保勾选的包裹记录实时显示）
                     renderHistoryList();
                     
                     // 显示成功提示
@@ -1131,27 +1144,55 @@
             }
         }
 
-        // 新增：计算所有勾选包裹的总金额
-        function getCheckedPackagesTotalAmount() {
+        // 新增：获取所有勾选包裹的列表（返回完整包裹数据）
+        function getCheckedPackagesList() {
             const checkboxes = document.querySelectorAll('.package-checkbox:checked');
-            let totalAmount = 0;
+            const checkedPackages = [];
             
             checkboxes.forEach(checkbox => {
                 const waybill = checkbox.dataset.waybill;
                 const pkg = appData.scannedPackages.find(item => item.waybill === waybill);
                 if (pkg) {
-                    totalAmount += pkg.totalAmount;
+                    checkedPackages.push(JSON.parse(JSON.stringify(pkg))); // 深拷贝，避免数据污染
                 }
+            });
+            
+            return checkedPackages;
+        }
+
+        // 新增：计算所有勾选包裹的总金额
+        function getCheckedPackagesTotalAmount() {
+            const checkedPackages = getCheckedPackagesList();
+            let totalAmount = 0;
+            
+            checkedPackages.forEach(pkg => {
+                totalAmount += pkg.totalAmount;
             });
             
             return totalAmount;
         }
 
+        // 新增：从扫描列表中移除已勾选的包裹
+        function removeCheckedPackagesFromScannedList() {
+            const checkedWaybills = [];
+            const checkboxes = document.querySelectorAll('.package-checkbox:checked');
+            
+            // 收集已勾选包裹的运单号
+            checkboxes.forEach(checkbox => {
+                checkedWaybills.push(checkbox.dataset.waybill);
+            });
+            
+            // 过滤扫描列表，保留未勾选的包裹
+            appData.scannedPackages = appData.scannedPackages.filter(pkg => {
+                return !checkedWaybills.includes(pkg.waybill);
+            });
+        }
+
         // 新增：更新批量揽收按钮的禁用状态（根据是否有勾选包裹）
         function updateBatchCollectBtnStatus() {
-            const checkedCount = document.querySelectorAll('.package-checkbox:checked').length;
+            const checkedPackages = getCheckedPackagesList();
             
-            if (checkedCount > 0) {
+            if (checkedPackages.length > 0) {
                 batchCollectBtn.disabled = false;
                 batchCollectBtn.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
@@ -1377,11 +1418,11 @@
             modal.classList.add('show');
         }
 
-        // 创建新的揽收记录 - 核心修复：完整同步扫描包裹的所有信息到历史记录
-        function createNewCollectionRecord() {
-            // 校验扫描包裹列表是否为空
-            if (appData.scannedPackages.length === 0) {
-                console.warn('无扫描的包裹，无法生成历史记录');
+        // 创建新的揽收记录 - 核心修改：接收勾选包裹列表，仅处理这些包裹
+        function createNewCollectionRecord(checkedPackages) {
+            // 校验勾选包裹列表是否为空
+            if (!checkedPackages || checkedPackages.length === 0) {
+                console.warn('无勾选的包裹，无法生成历史记录');
                 return;
             }
             
@@ -1396,8 +1437,8 @@
             const createTime = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
             const paymentTime = createTime;
             
-            // 为每个扫描的包裹生成完整历史记录（完整携带扫描数据）
-            appData.scannedPackages.forEach(pkg => {
+            // 为每个勾选的包裹生成完整历史记录（完整携带扫描数据）
+            checkedPackages.forEach(pkg => {
                 const newRecord = {
                     orderId: `KEX-${year}-${String(appData.orderIdCounter).padStart(4, '0')}`,
                     waybill: pkg.waybill,
